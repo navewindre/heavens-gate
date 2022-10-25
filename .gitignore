@@ -32,3 +32,11 @@
 *.out
 *.app
 
+*.pdb
+
+Release/*
+Debug/*
+X64/*
+src/Debug/*
+src/Release/*
+src/X64/*

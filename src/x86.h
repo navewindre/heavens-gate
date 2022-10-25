@@ -34,10 +34,10 @@ enum X64Regs_t : U8 {
 union REG64 {
   REG64() = default;
   REG64( U64 x ) : u64( x ) {}
-  REG64( U32 x ) { u32[0] = x; }
+  REG64( U32 x ) { u64 = x; }
 
   REG64( I64 x ) : u64( *(U64*)( &x ) ) {}
-  REG64( I32 x ) { u32[0] = *(U32*)( &x ); } 
+  REG64( I32 x ) { u64 = *(U32*)( &x ); } 
   
   U32 u32[2];
   U64 u64;

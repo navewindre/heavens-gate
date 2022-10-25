@@ -17,7 +17,7 @@ NTSTATUS64 nt_create_thread64(
 ) {
   static SYSCALL_ENTRY nt_create_thread = syscall_find_syscall( "NtCreateThread"fnv );
 
-  printf( "ntcreatethread: %d %08x", nt_create_thread.idx, nt_create_thread.base );
+  printf( "ntcreatethread: %d %08x\n", nt_create_thread.idx, nt_create_thread.base );
   
   REG64 thread_handle_ptr;
   REG64 access64;
@@ -58,7 +58,7 @@ NTSTATUS64 nt_create_thread64(
     unk64
   );
 
-  printf( "NTSTATUS: %08x", (U32)status );
+  printf( "NTSTATUS: %08x\n", (U32)status );
   
   return status;
 }

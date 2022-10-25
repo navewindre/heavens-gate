@@ -15,5 +15,6 @@ db( 0xcb ) /*retf*/
 
 #define rex_w  db( 0x48 ) __asm
 #define rex_wb db( 0x49 ) __asm
+#define rex_wr db( 0x4c ) __asm
 #define x64_push( x ) db( 0x48 | ( ( x ) >> 3 ) ) db( 0x50 | ( ( x ) & 7 ) )
 #define x64_pop( x ) db( 0x48 | ( ( x ) >> 3 ) ) db( 0x58 | ( ( x ) & 7 ) )

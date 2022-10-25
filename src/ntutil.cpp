@@ -1,8 +1,8 @@
 ﻿#include "ntutil.h"
 #include "syscall.h"
 
+// it's big nigga season
 
-//  todo: throws STATUS_ACCESS_VIOLATION idk why
 NTSTATUS64 nt_create_thread64(
   REG64* thread,
   ACCESS_MASK mask,
@@ -15,10 +15,8 @@ NTSTATUS64 nt_create_thread64(
   U32 stack_commit,
   U32 stack_reserve
 ) {
-  static SYSCALL_ENTRY nt_create_thread = syscall_find_syscall( "NtCreateThread"fnv );
+  static SYSCALL_ENTRY nt_create_thread = syscall_find_syscall( "NtCreateThreadEx"fnv );
 
-  printf( "ntcreatethread: %d %08x\n", nt_create_thread.idx, nt_create_thread.base );
-  
   REG64 thread_handle_ptr;
   REG64 access64;
   REG64 parameter64;
@@ -58,8 +56,6 @@ NTSTATUS64 nt_create_thread64(
     unk64
   );
 
-  printf( "NTSTATUS: %08x\n", (U32)status );
-  
   return status;
 }
 
@@ -67,5 +63,28 @@ NTSTATUS64 nt_close64( REG64 handle ) {
   static SYSCALL_ENTRY nt_close = syscall_find_syscall( "NtClose"fnv );
 
   NTSTATUS64 status = syscall_execute( nt_close.idx, handle );
+  return status;
+}
+
+NTSTATUS64 nt_open_process64(
+  HANDLE* handle,
+  U32 desired_access,
+  _OBJECT_ATTRIBUTES64* obj_attrbitues,
+  _CLIENT_ID_T<U64>* client_id
+) {
+  static SYSCALL_ENTRY nt_open_process = syscall_find_syscall( "NtOpenProcess"fnv );
+
+  REG64 handle64 = (U64)handle;
+  REG64 desired_access64 = (U64)desired_access;
+  REG64 object_attributes64 = (U64)obj_attrbitues;
+  REG64 client_id64 = (U64)client_id;
+
+  NTSTATUS64 status = syscall_execute( nt_open_process.idx,
+    handle64,
+    desired_access64,
+    object_attributes64,
+    client_id64
+  );
+
   return status;
 }

@@ -5,6 +5,7 @@
 #include <string>
 #include <Psapi.h>
 
+#include "winintern.h"
 #include "typedef.h"
 
 class PROCESS {
@@ -68,9 +69,18 @@ public:
       if ( !std::string( proc_entry.szExeFile ).compare( m_name ) ) {
         CloseHandle( t32_snapshot );
         m_id = proc_entry.th32ProcessID;
-        m_base = OpenProcess( PROCESS_ALL_ACCESS, 0, m_id );
 
-        return 1;
+        _CLIENT_ID_T<U64> cid;
+
+        cid.UniqueProcess = (U64)( UlongToHandle( m_id ) );
+        cid.UniqueThread = 0;
+
+        // TODO:
+        // this doesnt currently work. throws 0x5 access denied. this also happens with normal x64 code.
+        // need to set SeDebugPrivilege to work properly.
+        NTSTATUS64 status = nt_open_process64( &m_base, PROCESS_VM_READ | PROCESS_VM_WRITE, 0, &cid );
+
+        return status == STATUS_SUCCESS;
       }
     }
 

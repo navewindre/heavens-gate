@@ -11,6 +11,7 @@
 
 struct SYSCALL_ENTRY {
   const char* name;
+  FNV1A       hash;
   void*       base;
   I32         idx;
 };
@@ -66,11 +67,16 @@ inline U32 syscall_get_index( const U8* fn, U16* out_ret_bytes = 0 ) {
 }
 
 inline std::vector< SYSCALL_ENTRY > syscall_dump() {
-  std::vector< SYSCALL_ENTRY > ret;
-  std::vector< MODULE_EXPORT > nt_exports;
+  static std::vector< SYSCALL_ENTRY > ret;
+  static std::vector< MODULE_EXPORT > nt_exports;
 
+  // ntdll can't change during runtime
+  if( !ret.empty() )
+    return ret;
+  
   void* nt = nt_get_address();
-  nt_exports = module_get_exports( nt );
+  if( nt_exports.empty() )
+    nt_exports = module_get_exports( nt );
 
   for( auto exp : nt_exports ) {
     U32 size = syscall_wrapper_size( (U8*)exp.base );
@@ -85,6 +91,7 @@ inline std::vector< SYSCALL_ENTRY > syscall_dump() {
     SYSCALL_ENTRY e;
     e.base = exp.base;
     e.name = exp.name;
+    e.hash = fnv1a( e.name );
     e.idx = idx;
     
     ret.push_back( e );
@@ -94,30 +101,11 @@ inline std::vector< SYSCALL_ENTRY > syscall_dump() {
 }
 
 inline SYSCALL_ENTRY syscall_find_syscall( FNV1A syscall_hash ) {
-  std::vector< MODULE_EXPORT > nt_exports;
-
-  void* nt = nt_get_address();
-  nt_exports = module_get_exports( nt );
-
-  for( auto exp : nt_exports ) {
-    if( fnv1a( exp.name ) != syscall_hash )
-      continue;
-    
-    U32 size = syscall_wrapper_size( (U8*)exp.base );
-    if( !size )
-      continue;
-
-    if( !syscall_is_syscall( (U8*)exp.base, size ) )
-      continue;
-
-    U32 idx = syscall_get_index( (U8*)exp.base );
-
-    SYSCALL_ENTRY e;
-    e.base = exp.base;
-    e.name = exp.name;
-    e.idx = idx;
-    
-    return e;
+  static std::vector< SYSCALL_ENTRY > syscalls = syscall_dump();
+  
+  for( auto& syscall : syscalls ) {
+    if( syscall.hash == syscall_hash )
+      return syscall;
   }
 
   return {};
@@ -132,10 +120,10 @@ NTSTATUS64 syscall_execute( U32 idx, argt ... args ) {
   
   U64   argc = sizeof...( argt );
   U16   arg  = 0;
-  REG64 _rcx = ++arg < argc? (REG64)args64[arg] : 0;
-  REG64 _rdx = ++arg < argc? (REG64)args64[arg] : 0;
-  REG64 _r8  = ++arg < argc? (REG64)args64[arg] : 0;
-  REG64 _r9  = ++arg < argc? (REG64)args64[arg] : 0;
+  REG64 _rcx = arg < argc? (REG64)args64[arg++] : 0;
+  REG64 _rdx = arg < argc? (REG64)args64[arg++] : 0;
+  REG64 _r8  = arg < argc? (REG64)args64[arg++] : 0;
+  REG64 _r9  = arg < argc? (REG64)args64[arg++] : 0;
   REG64 _rax = {};
 
   REG64 argc64 = ( argc - arg );
@@ -163,10 +151,11 @@ NTSTATUS64 syscall_execute( U32 idx, argt ... args ) {
   // x64 syscall calling convention
   // standard fastcall, first 4 args go in registers
   __asm {
-    rex_w  mov ecx, _rcx.u32[0] // mov rcx, a0 
-    rex_wb mov edx, _rdx.u32[0] // mov r10, a1
-    rex_wb mov eax, _r8.u32[0]  // mov r8, a2
-    rex_wb mov ecx, _r9.u32[0]  // mov r9, a3
+    rex_wr mov edx, _rcx.u32[0] // mov r10, a0 
+    rex_w  mov edx, _rdx.u32[0] // mov edx, a1
+    rex_w  mov ecx, _rcx.u32[0]
+    rex_wr mov eax, _r8.u32[0]  // mov r8, a2
+    rex_wr mov ecx, _r9.u32[0]  // mov r9, a3
   }
 
   __asm {
@@ -197,22 +186,21 @@ arg_loop:
     rex_w  sub eax, 1          // sub rax, 1
            jmp arg_loop
   }
-
 loop_end:
 
   __asm {
+    rex_w  mov eax, idx64.u32[0]
     // make stack space for syscall
-    rex_w  sub esp, 0x40
+    rex_w  sub esp, 0x28 // this fucker cost me a night
 
     // do the epic
-    rex_w  mov eax, idx64.u32[0]
            db( 0x0f ) db( 0x05 ) // syscall
   }
 
   //unfuck the stack
   __asm {
     rex_w  mov ecx, argc64.u32[0]
-    rex_w  lea esp, dword ptr[esp + 8 * ecx + 0x40]
+    rex_w  lea esp, dword ptr[esp + 8 * ecx + 0x28]
 
     pop edi
 

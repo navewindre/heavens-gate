@@ -20,15 +20,13 @@ struct STR {
 };
 
 inline ULONG u_thread_create( LPTHREAD_START_ROUTINE routine, void* param = 0 ) {
-  _OBJECT_ATTRIBUTES64 attr{};
   REG64                thread;
   ULONG                ret_id;
 
-  attr.Length = sizeof( attr );
-
-  nt_create_thread64( &thread, 0xffff, &attr, GetCurrentProcess(), routine, param, 0 ); 
+  nt_create_thread64( &thread, 0x1fffff, 0, GetCurrentProcess(), routine, param, 0 ); 
   ret_id = GetThreadId( (HANDLE)thread.u32[0] );
-  
+
+  nt_close64( thread );
   
   return ret_id;
 }

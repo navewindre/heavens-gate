@@ -12,8 +12,6 @@
 I32 main() {
   con_init();
 
-  auto nt_dump = syscall_dump();
-
   u_thread_create( &con_handler ); 
   u_thread_create( &con_hook_handler );
 

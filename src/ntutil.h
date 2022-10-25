@@ -63,3 +63,10 @@ extern NTSTATUS64 nt_create_thread64(
 extern NTSTATUS64 nt_close64(
   REG64 handle
 );
+
+extern NTSTATUS64 nt_open_process64(
+  HANDLE* handle,
+  U32 desired_access,
+  _OBJECT_ATTRIBUTES64* obj_attrbitues,
+  _CLIENT_ID_T<U64>* client_id
+);

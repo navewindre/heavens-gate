@@ -5,14 +5,15 @@
 #include <string>
 #include <Psapi.h>
 
+#include "ntutil.h"
 #include "winintern.h"
 #include "typedef.h"
 
 class PROCESS {
 private:
-  HANDLE      m_base{ };
-  I32         m_id{ };
-  char        m_name[256]{ };
+  HANDLE      m_base{};
+  I32         m_id{};
+  char        m_name[256]{};
 
 private:
   U8 binary_match( U8* code, U8* pattern, U32 size ) {
@@ -66,19 +67,23 @@ public:
     for ( Process32First( t32_snapshot, &proc_entry );
       Process32Next( t32_snapshot, &proc_entry );
       ) {
-      if ( !std::string( proc_entry.szExeFile ).compare( m_name ) ) {
+      if ( !strcmp( proc_entry.szExeFile, m_name ) ) {
         CloseHandle( t32_snapshot );
         m_id = proc_entry.th32ProcessID;
 
+        _OBJECT_ATTRIBUTES64 obj_attributes{};
         _CLIENT_ID_T<U64> cid;
 
         cid.UniqueProcess = (U64)( UlongToHandle( m_id ) );
         cid.UniqueThread = 0;
+        obj_attributes.Length = sizeof( obj_attributes );
 
-        // TODO:
-        // this doesnt currently work. throws 0x5 access denied. this also happens with normal x64 code.
-        // need to set SeDebugPrivilege to work properly.
-        NTSTATUS64 status = nt_open_process64( &m_base, PROCESS_VM_READ | PROCESS_VM_WRITE, 0, &cid );
+        NTSTATUS64 status = nt_open_process64(
+          &m_base,
+          PROCESS_ALL_ACCESS, 
+          &obj_attributes,
+          &cid
+        );
 
         return status == STATUS_SUCCESS;
       }
@@ -122,15 +127,16 @@ public:
     K32GetModuleInformation( m_base, (HMODULE)module_base, &module, sizeof( MODULEINFO ) );
     module_size = module.SizeOfImage;
     
-    MEMORY_BASIC_INFORMATION mbi{0};
+    MEMORY_BASIC_INFORMATION64 mbi{0};
 
-    for( U32 off = 0; off < module_size; off += mbi.RegionSize ) {
-      VirtualQueryEx( m_base, (LPVOID)( module_base + off ), &mbi, sizeof( MEMORY_BASIC_INFORMATION ) );
+    for( U64 off = 0; off < module_size; off += mbi.RegionSize ) {
+      nt_query_vm64( m_base, module_base + off, MemoryRegionInfo, &mbi, sizeof( mbi ) );
+      
       if( mbi.State == MEM_FREE )
         continue;
       
-      U8* buffer = (U8*)malloc( mbi.RegionSize );
-      read( (U32)mbi.BaseAddress, buffer, mbi.RegionSize );
+      U8* buffer = (U8*)malloc( (U32)mbi.RegionSize );
+      read( (U32)mbi.BaseAddress, buffer, (U32)mbi.RegionSize );
       
       for( U32 i = 0; i < mbi.RegionSize - sig_length; ++i ) {
         if( binary_match( buffer + i, sig_bytes, sig_length ) ) {
@@ -150,11 +156,11 @@ public:
   I32 get_id() { return m_id; }
 
   template < typename t > void write( U32 address, const t& value ) {
-    WriteProcessMemory( m_base, (LPVOID)( address ), &value, sizeof( t ), nullptr );
+    nt_write_vm64( m_base, address, (void*)&value, sizeof( t ) );
   }
 
   void write( U32 address, void* buffer, U32 size ) {
-    WriteProcessMemory( m_base, (LPVOID)( address ), buffer, size, nullptr );
+    nt_write_vm64( m_base, address, buffer, size );
   }
 
   template < typename t > t read( U32 address ) {
@@ -165,7 +171,7 @@ public:
   }
 
   void read( U32 address, void* out, U32 size ) {
-    ReadProcessMemory( m_base, (LPVOID)( address ), out, size, nullptr ); 
+    nt_read_vm64( m_base, address, out, size );
   }
 };
 

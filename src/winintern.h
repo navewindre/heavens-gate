@@ -317,10 +317,10 @@ struct _CONTEXT64
 
 template< class T >
 struct _OBJECT_ATTRIBUTES_T {
-  T          Length;
+  ULONG      Length;
   T          RootDirectory;
   T          ObjectName;
-  T          Attributes;
+  ULONG      Attributes;
   T          SecurityDescriptor;
   T          SecurityQualityOfService;
 };

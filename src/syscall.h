@@ -112,7 +112,6 @@ inline SYSCALL_ENTRY syscall_find_syscall( FNV1A syscall_hash ) {
 }
 
 
-
 template < typename ... argt >
 NTSTATUS64 syscall_execute( U32 idx, argt ... args ) {
   REG64 args64[] = { (REG64)(args)... };

@@ -64,9 +64,38 @@ extern NTSTATUS64 nt_close64(
   REG64 handle
 );
 
+inline NTSTATUS64 nt_close64( HANDLE handle ) {
+  return nt_close64( (U64)handle );
+}
+
 extern NTSTATUS64 nt_open_process64(
   HANDLE* handle,
   U32 desired_access,
   _OBJECT_ATTRIBUTES64* obj_attrbitues,
   _CLIENT_ID_T<U64>* client_id
+);
+
+extern NTSTATUS64 nt_write_vm64(
+  HANDLE handle,
+  U64 address, // imagine lmfao
+  void* value,
+  ULONG size,
+  U64* out_ret_bytes = 0
+);
+
+extern NTSTATUS64 nt_read_vm64(
+  HANDLE handle,
+  U64 address,
+  void* buffer,
+  ULONG size,
+  U64* out_ret_bytes = 0
+);
+
+extern NTSTATUS64 nt_query_vm64(
+  HANDLE handle,
+  U64 address,
+  WIN32_MEMORY_INFORMATION_CLASS information_class,
+  void* memory_information,
+  U64 memory_information_length,
+  U64* return_length = 0
 );

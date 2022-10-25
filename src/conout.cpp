@@ -13,11 +13,16 @@ CON_LINE* con_lines = (CON_LINE*)malloc( sizeof( CON_LINE ) * ( CON_MAX_HEIGHT +
 U8        con_selected_line = 0;
 
 void con_init() {
+  AllocConsole();
+  freopen( "CONOUT$","w",stdout );
+
   HWND con_handle = GetConsoleWindow();
   SetConsoleMode(
     con_handle,
-    DISABLE_NEWLINE_AUTO_RETURN | ENABLE_WINDOW_INPUT | ENABLE_VIRTUAL_TERMINAL_INPUT
+    DISABLE_NEWLINE_AUTO_RETURN|ENABLE_WINDOW_INPUT|ENABLE_VIRTUAL_TERMINAL_INPUT
   );
+
+  SetConsoleTitleA( "TESTING" );
 
   for( U8 i = 0; i < CON_MAX_HEIGHT; ++i ) {
     con_lines[i].line_num = -1;
@@ -47,6 +52,7 @@ void con_resize( U8 w, U8 h ) {
   HANDLE std_handle = GetStdHandle( STD_OUTPUT_HANDLE );
   SetConsoleWindowInfo( std_handle, true, &console_wnd );
   SetConsoleScreenBufferSize( std_handle, COORD( w + 1, h + 1 ) );
+  SetConsoleWindowInfo( std_handle,true,&console_wnd );
 
   HWND con_handle = GetConsoleWindow();
   HMENU sys_menu  = GetSystemMenu( con_handle, false );
@@ -64,7 +70,6 @@ void con_print( U8 color, const char* text, ... ) {
   vprintf_s( text, args );
   va_end( args );
 }
-
 
 void con_print_title() {
   con_print( 133, "  =============== [ heaven's gate ] ===============  " );
@@ -201,7 +206,6 @@ void con_set_bottomline_text( const char* text, ... ) {
 
   con_set_bottomline_text( CONFG_BLACK + CONBG_LIGHTGRAY, str_buffer );
 }
-
 
 void con_clear_bottomline_text() {
   con_setpos( 0, CON_HEIGHT - 1 );

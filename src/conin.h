@@ -19,4 +19,7 @@ struct CON_EVENT {
 extern U8* con_key_states;
 extern bool con_capturing_input;
 
+extern void con_update_hotkey( U8 line , I32 &var );
+
 extern ULONG __stdcall con_handler( void* );
+extern ULONG __stdcall con_hook_handler( void * );

@@ -2,15 +2,43 @@
 // github.com/navewindre
 
 #include <windows.h>
-
 #include "conin.h"
-
+#include "vars.h"
 #include <cstdio>
-
 #include "mathutil.h"
 
 U8*  con_key_states = (U8*)malloc( 256 );
 bool con_capturing_input = false;
+
+U8   con_captured_key = NULL;
+bool con_capturing_key = false;
+bool con_enable_hook = false;
+HHOOK con_keybdhook = NULL;
+HHOOK con_mousehook = NULL;
+
+void con_update_hotkey( U8 line , I32 &hk) {
+  con_capturing_key = true;
+  con_enable_hook = true;
+
+  con_set_line_subtext(
+    line,
+    "[...]",
+    true,
+    CONFG_LIGHTRED );
+
+  while( con_capturing_key ) {
+    Sleep( 100 );
+  }
+
+  if( con_captured_key!=0x1B ) 
+    hk = con_captured_key;
+
+  con_set_line_subtext(
+    line,
+    key_titles[hk],
+    true,
+    CONFG_LIGHTBLUE );
+}
 
 I8 con_find_nearest_line( I8 cur, bool reverse ) {
   if( reverse ) {
@@ -46,7 +74,7 @@ void con_line_change_callback( U8 prev, U8 current ) {
 void con_handle_ui_event( CON_EVENT e ) {
   if( !con_capturing_input )
     return;
-  
+
   if( con_key_states[e.keycode] || !e.state )
     return;
 
@@ -113,15 +141,100 @@ void con_parse_events( HANDLE stdi ) {
     e.state =   !r->Event.KeyEvent.bKeyDown;
     e.keycode = r->Event.KeyEvent.wVirtualKeyCode;
 
-    con_parse_event( e );    
+    con_parse_event( e );
   }
 }
 
-ULONG __stdcall con_handler( void* ) {
+ULONG __stdcall con_handler( void * ) {
   HANDLE stdi = GetStdHandle( STD_INPUT_HANDLE );
   for( ;; ) {
     con_parse_events( stdi );
-    
+
     Sleep( 1 );
   }
+}
+
+LRESULT CALLBACK con_khook_callback( int n,WPARAM w,LPARAM l )
+{
+  KBDLLHOOKSTRUCT key = *((KBDLLHOOKSTRUCT *) l);
+  if( con_capturing_key && w == WM_KEYDOWN ) {
+    if( key.vkCode == 0x0D ||
+        key.vkCode == 0x26 ||
+        key.vkCode == 0x28 ) {
+      return 1;
+    }
+
+    con_capturing_key = false;
+    con_captured_key = key.vkCode;
+    PostQuitMessage( 0 );
+  }
+  return CallNextHookEx( con_keybdhook, n, w, l );
+}
+
+LRESULT CALLBACK con_mhook_callback( int n,WPARAM w,LPARAM l )
+{
+  MSLLHOOKSTRUCT mos = *((MSLLHOOKSTRUCT *) l);
+  if( con_capturing_key ) {
+    switch( w ) {
+    case WM_LBUTTONDOWN:
+      con_captured_key = 1;
+      con_capturing_key = false;
+      break;
+
+    case WM_RBUTTONDOWN:
+      con_captured_key = 2;
+      con_capturing_key = false;
+      break;
+
+    case WM_MBUTTONDOWN:
+      con_captured_key = 4;
+      con_capturing_key = false;
+      break;
+
+    case WM_XBUTTONDOWN:
+      MSLLHOOKSTRUCT *info = reinterpret_cast<MSLLHOOKSTRUCT *>( l );
+      I8 xb = HIWORD( info->mouseData );
+      con_captured_key = xb + 0x4;
+      con_capturing_key = false;
+      break;
+    }
+    if( !con_capturing_key )
+      PostQuitMessage( 0 ); 
+  }
+  return CallNextHookEx( con_mousehook, n, w, l );
+}
+
+ULONG __stdcall con_hook_handler( void* ) {
+  HINSTANCE con_hinstance = GetModuleHandle( NULL );
+  MSG con_inputMsg;
+
+  for( ;;) {
+    if( con_enable_hook ) {
+
+      con_keybdhook = SetWindowsHookExW(
+        WH_KEYBOARD_LL,
+        con_khook_callback,
+        con_hinstance,
+        0 );
+
+      con_mousehook = SetWindowsHookExW(
+        WH_MOUSE_LL,
+        con_mhook_callback,
+        con_hinstance,
+        0 );
+
+      while( GetMessage( &con_inputMsg,NULL,0,0 ) )
+      {
+        TranslateMessage( &con_inputMsg );
+        DispatchMessageA( &con_inputMsg );
+      }
+
+      UnhookWindowsHookEx( con_keybdhook );
+      UnhookWindowsHookEx( con_mousehook );
+      con_enable_hook = false;
+    }
+    Sleep( 1 );
+  }
+
+  return 0;
 }

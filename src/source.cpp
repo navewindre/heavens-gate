@@ -5,12 +5,15 @@
 #include "hack.h"
 #include "util.h"
 #include "conin.h"
+#include "menu.h"
+#include "vars.h"
 
 
 I32 main() {
   con_init();
   u_thread_create( &con_handler ); 
-  
+  u_thread_create( &con_hook_handler );
+
   CSGO p{};
 
   while( !p.open() ) {
@@ -20,7 +23,7 @@ I32 main() {
   
   hack_init( &p );
   Sleep( 1000 );
-  hack_show_ui( &p );
+  menu_show_ui( &p );
   
   for ( ;; ) {
     hack_run_bhop( &p );

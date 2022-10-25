@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="source.cpp" />
+    <ClCompile Include="conin.cpp">
+      <Filter>Console</Filter>
+    </ClCompile>
+    <ClCompile Include="conout.cpp">
+      <Filter>Console</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="typedef.h" />
+    <ClInclude Include="conin.h">
+      <Filter>Console</Filter>
+    </ClInclude>
+    <ClInclude Include="conout.h">
+      <Filter>Console</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk.h">
+      <Filter>Hack</Filter>
+    </ClInclude>
+    <ClInclude Include="asmutil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="mathutil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="syscall.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="hack.h">
+      <Filter>Hack</Filter>
+    </ClInclude>
+    <ClInclude Include="ntutil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="process.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="winintern.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="menu.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="vars.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Console">
+      <UniqueIdentifier>{70c04199-d27a-4e3e-8b24-7be72b38326b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Hack">
+      <UniqueIdentifier>{34bdb695-2332-40eb-9d0e-1e91691fdea6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{2a464b99-56b4-4450-8dc1-4dd920a6183b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Menu">
+      <UniqueIdentifier>{77e5fc6f-b4e1-4265-ba15-0295ef9bd911}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{55f07d41-9e36-4718-b51c-f6883ca4d543}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

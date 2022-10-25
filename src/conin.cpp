@@ -10,7 +10,7 @@
 U8*  con_key_states = (U8*)malloc( 256 );
 bool con_capturing_input = false;
 
-U8   con_captured_key = NULL;
+U32  con_captured_key = NULL;
 bool con_capturing_key = false;
 bool con_enable_hook = false;
 HHOOK con_keybdhook = NULL;
@@ -193,7 +193,7 @@ LRESULT CALLBACK con_mhook_callback( int n,WPARAM w,LPARAM l )
 
     case WM_XBUTTONDOWN:
       MSLLHOOKSTRUCT *info = reinterpret_cast<MSLLHOOKSTRUCT *>( l );
-      I8 xb = HIWORD( info->mouseData );
+      I16 xb = HIWORD( info->mouseData );
       con_captured_key = xb + 0x4;
       con_capturing_key = false;
       break;

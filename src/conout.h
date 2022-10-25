@@ -115,7 +115,7 @@ extern void con_print_line( U8 line );
 
 inline void con_print_colors() {
   for( I16 i = 0; i <= 255; ++i )
-    con_print( i, "%003d", i );
+    con_print( (U8)i, "%003d", i );
 }
 
-extern STRING<64> con_progressbar( F32 progress, U8 width = CON_MAX_WIDTH );
+extern STR<64> con_progressbar( F32 progress, U8 width = CON_MAX_WIDTH );

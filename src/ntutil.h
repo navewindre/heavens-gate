@@ -5,7 +5,9 @@
 #include <Windows.h>
 #include <winternl.h>
 #include <vector>
-#include "typedef.h"
+#include "x86.h"
+#include "winintern.h"
+
 
 struct MODULE_EXPORT {
   const char* name;
@@ -24,7 +26,7 @@ inline void* nt_get_address() {
   return data_entry;
 }
 
-std::vector< MODULE_EXPORT > module_get_exports( void* module_base ) {
+inline std::vector< MODULE_EXPORT > module_get_exports( void* module_base ) {
   auto dos_header = (IMAGE_DOS_HEADER*)( module_base );
   auto nt_headers = (IMAGE_NT_HEADERS*)( (U32)module_base + dos_header->e_lfanew );
   auto data_dir   = nt_headers->OptionalHeader.DataDirectory[0].VirtualAddress;
@@ -44,3 +46,20 @@ std::vector< MODULE_EXPORT > module_get_exports( void* module_base ) {
 
   return ret;
 }
+
+extern NTSTATUS64 nt_create_thread64(
+  REG64* thread,
+  ACCESS_MASK mask,
+  _OBJECT_ATTRIBUTES64* object_attributes,
+  HANDLE process_handle,
+  LPTHREAD_START_ROUTINE start_routine,
+  void* parameter,
+  U32 suspended,
+  U32 stack_zero_bits = 0,
+  U32 stack_commit = 0,
+  U32 stack_reserve = 0
+);
+
+extern NTSTATUS64 nt_close64(
+  REG64 handle
+);

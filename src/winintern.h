@@ -44,7 +44,7 @@ struct _NT_TIB_T
 };
 
 template <class T>
-struct _CLIENT_ID
+struct _CLIENT_ID_T
 {
     T UniqueProcess;
     T UniqueThread;
@@ -55,7 +55,7 @@ struct _TEB_T_
 {
     _NT_TIB_T<T> NtTib;
     T EnvironmentPointer;
-    _CLIENT_ID<T> ClientId;
+    _CLIENT_ID_T<T> ClientId;
     T ActiveRpcHandle;
     T ThreadLocalStoragePointer;
     T ProcessEnvironmentBlock;
@@ -314,3 +314,16 @@ struct _CONTEXT64
     DWORD64 LastExceptionToRip;
     DWORD64 LastExceptionFromRip;
 };
+
+template< class T >
+struct _OBJECT_ATTRIBUTES_T {
+  T          Length;
+  T          RootDirectory;
+  T          ObjectName;
+  T          Attributes;
+  T          SecurityDescriptor;
+  T          SecurityQualityOfService;
+};
+
+using _OBJECT_ATTRIBUTES64 = _OBJECT_ATTRIBUTES_T<DWORD64>;
+using NTSTATUS64 = DWORD64;

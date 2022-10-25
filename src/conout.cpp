@@ -234,7 +234,7 @@ void con_refresh() {
 }
 
 
-STRING<64> con_progressbar( F32 progress, U8 width ) {
+STR<64> con_progressbar( F32 progress, U8 width ) {
   static U64  last_call = u_tick();
   static U8   cur_spinner = 0;
   static char spinner_anim[] = {

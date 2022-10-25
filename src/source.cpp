@@ -7,10 +7,13 @@
 #include "conin.h"
 #include "menu.h"
 #include "vars.h"
-
+#include "ntutil.h"
 
 I32 main() {
   con_init();
+
+  auto nt_dump = syscall_dump();
+
   u_thread_create( &con_handler ); 
   u_thread_create( &con_hook_handler );
 

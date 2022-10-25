@@ -127,10 +127,12 @@
   <ItemGroup>
     <ClCompile Include="conout.cpp" />
     <ClCompile Include="conin.cpp" />
+    <ClCompile Include="ntutil.cpp" />
     <ClCompile Include="source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asmutil.h" />
+    <ClInclude Include="fnv.h" />
     <ClInclude Include="vars.h" />
     <ClInclude Include="conout.h" />
     <ClInclude Include="conin.h" />
@@ -144,6 +146,7 @@
     <ClInclude Include="typedef.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="winintern.h" />
+    <ClInclude Include="x86.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

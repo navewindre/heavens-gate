@@ -3,21 +3,11 @@
 
 #pragma once
 #include <vector>
-#include "typedef.h"
+#include "x86.h"
+#include "fnv.h"
 #include "asmutil.h"
-#include "process.h"
 #include "ntutil.h"
-
-enum X86Regs_t : U32 {
-  eax = 0,
-  ecx,
-  edx,
-  ebx,
-  esp,
-  ebp,
-  esi,
-  edi
-};
+#include "winintern.h"
 
 struct SYSCALL_ENTRY {
   const char* name;
@@ -25,9 +15,6 @@ struct SYSCALL_ENTRY {
   I32         idx;
 };
 
-constexpr U32 x86_encode_mov_imm32( U32 reg ) { return ( 0xb8 + reg ); }
-constexpr U32 x86_encode_push_reg( U32 reg ) { return 0x50 | ( reg & 7 ); }
-constexpr U32 x86_encoded_pop_reg( U32 reg ) { return 0x58 | ( reg & 7 ); }
 
 inline U32 syscall_wrapper_size( const U8* fn, U16* out_ret_bytes = 0 ) {
   for( U32 off = 0; off < 0x30; ++off ) {
@@ -53,7 +40,7 @@ inline U8 syscall_is_syscall( const U8* fn, U32 fn_size ) {
     return false;
 
   for( U32 off = 0; off < fn_size; ++off ) {
-    if( *(U16*)( &fn[off] ) == 0xffd2 /* call edx */ )
+    if( *(U16*)( &fn[off] ) == 0xd2ff /* call edx */ )
       return 1;
   }
 
@@ -89,7 +76,7 @@ inline std::vector< SYSCALL_ENTRY > syscall_dump() {
     U32 size = syscall_wrapper_size( (U8*)exp.base );
     if( !size )
       continue;
-
+    
     if( !syscall_is_syscall( (U8*)exp.base, size ) )
       continue;
 
@@ -106,105 +93,145 @@ inline std::vector< SYSCALL_ENTRY > syscall_dump() {
   return ret;
 }
 
-__declspec( naked ) void NULLSUB_000() {};
+inline SYSCALL_ENTRY syscall_find_syscall( FNV1A syscall_hash ) {
+  std::vector< MODULE_EXPORT > nt_exports;
 
-union REG64 {
-  U32 u32[2];
-  U64 u64;
-};
+  void* nt = nt_get_address();
+  nt_exports = module_get_exports( nt );
 
-typedef U64( __cdecl* fn_type )( U64* );
+  for( auto exp : nt_exports ) {
+    if( fnv1a( exp.name ) != syscall_hash )
+      continue;
+    
+    U32 size = syscall_wrapper_size( (U8*)exp.base );
+    if( !size )
+      continue;
+
+    if( !syscall_is_syscall( (U8*)exp.base, size ) )
+      continue;
+
+    U32 idx = syscall_get_index( (U8*)exp.base );
+
+    SYSCALL_ENTRY e;
+    e.base = exp.base;
+    e.name = exp.name;
+    e.idx = idx;
+    
+    return e;
+  }
+
+  return {};
+}
+
+
 
 template < typename ... argt >
-NTSTATUS syscall_execute( U64 idx, argt ... args ) {
-  U64 args64[] = { (U64)(args)... };
+NTSTATUS64 syscall_execute( U32 idx, argt ... args ) {
+  REG64 args64[] = { (REG64)(args)... };
 
-  constexpr U8 stub[] = {
-    0x55,                               // 0:   push ebp
-    0x89, 0xe5,                         // 2:   mov ebp, esp
-
-    0x83, 0xe4, 0xf0,                   // 5:   and esp, 0xfffffff0
   
-    // enter long mode
-    0x6a, 0x33,                         // 7:   push 0x33
-    0xe8, 0x00, 0x00, 0x00, 0x00,       // 12:  call rel32 0x0
-    0x83, 0x04, 0x24, 0x05,             // 16:  add dword ptr[esp], 0x5
-    0xcb,                               // 17:  retf
+  U64   argc = sizeof...( argt );
+  U16   arg  = 0;
+  REG64 _rcx = ++arg < argc? (REG64)args64[arg] : 0;
+  REG64 _rdx = ++arg < argc? (REG64)args64[arg] : 0;
+  REG64 _r8  = ++arg < argc? (REG64)args64[arg] : 0;
+  REG64 _r9  = ++arg < argc? (REG64)args64[arg] : 0;
+  REG64 _rax = {};
 
-    // copy first 4 args to registers
-    0x67, 0x48, 0x8b, 0x4d, 8,          // 22:  mov r10, [ebp + 8]
-    0x67, 0x48, 0x8B, 0x55, 16,         // 27:  mov rdx, [ebp + 16]
-    0x67, 0x4C, 0x8B, 0x45, 24,         // 32:  mov r8, [ebp + 24]
-    0x67, 0x4C, 0x8B, 0x4D, 32,         // 37:  mov r9, [ebp + 32]
+  REG64 argc64 = ( argc - arg );
+  REG64 argp = (U64)&args64[arg];
+
+  REG64 idx64 = (U64)idx;
+
+  U32 _esp;
+  U16 _fs;
+
+  // backup fs and esp to make restoring simpler
+  __asm {
+    mov _fs, fs
+    mov _esp, esp
     
-    0x48, 0xB8, 0xEF, 0xBE, 0xAD, 0xDE,
-    0x00, 0x00, 0x00, 0x00,             // 47:  mov rax, param_count
+    mov eax, 0x2b
+    mov fs, ax
 
-    // check if copy needed
-    0xa8, 0x01,                         // 49:  test al, 1
-    0x75, 0x04,                         // 51:  jne 6
-    0x48, 0x83, 0xec, 0x08,             // 55:  sub rsp, 8
+    // align stack to 16
+    and esp, 0xfffffff0
+  }
 
-    0x57,                               // 56:  push rdi
-    0x67, 0x48, 0x8b, 0x7d, 40,         // 61:  mov rdi, [ebp + 40]
-    0x75, 0x06,                         // 63:  jne 8 
-    0x74, 0x16, 0x48, 0x8d, 0xc7, 0xf8, // 69:  lea rdi, [rdi+rax*8-8]
+  heavens_gate_enter();
 
-    // set up variable width for x64 syscall
-    0x48, 0x85, 0xc0,                   // 72:  test rax, rax
-    0x74, 0x0c,                         // 74:  je 0c
-    0xff, 0x37,                         // 76:  push [rdi]
-    0x48, 0x83, 0xef, 0x08,             // 80:  sub rdi, 8
-    0x48, 0x83, 0xe8, 0x01,             // 84:  sub rax, 1
-    0xeb, 0xef,                         // 86:  jmp rel
+  // x64 syscall calling convention
+  // standard fastcall, first 4 args go in registers
+  __asm {
+    rex_w  mov ecx, _rcx.u32[0] // mov rcx, a0 
+    rex_wb mov edx, _rdx.u32[0] // mov r10, a1
+    rex_wb mov eax, _r8.u32[0]  // mov r8, a2
+    rex_wb mov ecx, _r9.u32[0]  // mov r9, a3
+  }
 
-    0x48, 0xBF, 0xEF, 0xBE, 0xAD, 0xDE,
-    0x00, 0x00, 0x00, 0x00,             // 96:  mov rdi, return_ptr
-    0x47, 0x83, 0xec, 0x20,             // 100: sub rsp, 0x20
-
-    // do the syscall
-    0x4c, 0x8b, 0xd1,                   // 103: mov r10, rcx
-    0xb8, 0xde, 0xad, 0xbe, 0xef,       // 108: mov eax, syscall_index
-    0x0f, 0x05,                         // 110: syscall
-
-    // un-fuck the stack
-    0x48, 0x89, 0x07,                   // 113: mov [rdi], rax
-    0x67, 0x48, 0x8b, 0x4d, 64,         // 119: mov rcx, [ebp+64]
-    0x48, 0x8d, 0x64, 0xcc, 0x20,       // 125: lea rsp, [rsp+rcx*8+64]
-    0x5f,                               // 126: pop rdi
-
-    // exit long mode
-    0xe8, 0x00, 0x00, 0x00, 0x00,       // 131: call rel32 0x0
-    0xc7, 0x44, 0x24, 0x04,
-    0x23, 0x00, 0x00, 0x00,             // 139: mov dword ptr[rsp+4], 0x23
-    0x83, 0x04, 0x24, 0x0d,             // 143: retf
-
-    0x66, 0x8c, 0xd8,                   // 146: mov ax, ds
-    0x8e, 0xd0,                         // 148: mov ss, eax
-
-    0x89, 0xec,                         // 150: mov esp, ebp
-    0x5d,                               // 151: pop ebp
-    0xcc                                // 152: ret
-  };
-
-  void* stub_alloc = VirtualAlloc(
-    0,
-    sizeof( stub ),
-    MEM_COMMIT | MEM_RESERVE,
-    PAGE_EXECUTE_READWRITE
-  );
-
-  REG64 ret{};
+  __asm {
+    rex_w  mov eax, argc64.u32[0]
+           test al, 1
+           jnz stack_ok
+           // most syscalls are fine with the stack being aligned to 16 bytes
+           // but few specific ones crash
+           // adjust based on no. of args
+           sub esp, 8
+  }
   
-  memcpy( stub_alloc, stub, sizeof( stub ) );
-  *(U64*)( &stub_alloc[41] ) = sizeof...( args );
-  *(U32*)( &stub_alloc[98] ) = (U32)idx;  
-  ( (REG64*)&stub_alloc[88] )->u32[0] = &ret;
-  
-  fn_type fn = ( fn_type )( stub_alloc );
-  fn( args64 );
+stack_ok:
 
-  VirtualFree( stub_alloc, sizeof( stub ), MEM_FREE );
+  __asm {
+           push edi
+    rex_w  mov edi, argp.u32[0] // mov rdi, argp
+    rex_w  lea edi, dword ptr[edi + 8 * eax - 8]
+  }
 
-  return (NTSTATUS)ret.u64;
+arg_loop:
+
+  __asm {
+    rex_w  test eax, eax       // test rax, rax
+           jz loop_end
+           push dword ptr[edi]
+    rex_w  sub edi, 8          // sub rdi, 8
+    rex_w  sub eax, 1          // sub rax, 1
+           jmp arg_loop
+  }
+
+loop_end:
+
+  __asm {
+    // make stack space for syscall
+    rex_w  sub esp, 0x40
+
+    // do the epic
+    rex_w  mov eax, idx64.u32[0]
+           db( 0x0f ) db( 0x05 ) // syscall
+  }
+
+  //unfuck the stack
+  __asm {
+    rex_w  mov ecx, argc64.u32[0]
+    rex_w  lea esp, dword ptr[esp + 8 * ecx + 0x40]
+
+    pop edi
+
+    // store 64 bits of rax on the stack
+    rex_w  mov _rax.u32[0], eax
+  }
+
+  heavens_gate_exit();
+
+  __asm {
+    // restore stack segment
+    mov ax, ds
+    mov ss, ax
+
+    // restore esp and fs
+    mov esp, _esp
+    mov ax, _fs
+    mov fs, ax
+  }
+
+  return _rax.u64;
 }

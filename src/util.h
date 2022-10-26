@@ -38,3 +38,14 @@ STR< 32 > u_num_to_string_hex( t num ) {
   sprintf( ret.data, "%08X", num );
   return ret;
 }
+
+template < U32 size = 128 >
+STR< size > u_widebyte_to_ansi( wchar_t* str ) {
+  STR< size > ret;
+
+  for( U32 i = 0; !!str[i]; ++i ) {
+    ret.data[i] = str[i] & 0xff;
+  }
+
+  return ret;
+}

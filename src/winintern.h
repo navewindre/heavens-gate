@@ -315,6 +315,32 @@ struct _CONTEXT64
     DWORD64 LastExceptionFromRip;
 };
 
+struct _SYSTEM_PROCESS_INFORMATION64 {
+  ULONG NextEntryOffset;
+  ULONG NumberOfThreads;
+  BYTE Reserved1[48];
+  _UNICODE_STRING_T<U64> ImageName;
+  KPRIORITY BasePriority;
+  U64   UniqueProcessId;
+  U64   Reserved2;
+  ULONG HandleCount;
+  ULONG SessionId;
+  U64   Reserved3;
+  U64   PeakVirtualSize;
+  U64   VirtualSize;
+  ULONG Reserved4;
+  U64   PeakWorkingSetSize;
+  U64   WorkingSetSize;
+  U64 Reserved5;
+  U64 QuotaPagedPoolUsage;
+  U64 Reserved6;
+  U64 QuotaNonPagedPoolUsage;
+  U64 PagefileUsage;
+  U64 PeakPagefileUsage;
+  U64 PrivatePageCount;
+  LARGE_INTEGER Reserved7[6];
+};
+
 template< class T >
 struct _OBJECT_ATTRIBUTES_T {
   ULONG      Length;

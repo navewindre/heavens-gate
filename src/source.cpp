@@ -6,8 +6,6 @@
 #include "util.h"
 #include "conin.h"
 #include "menu.h"
-#include "vars.h"
-#include "ntutil.h"
 
 I32 main() {
   con_init();

@@ -159,3 +159,54 @@ NTSTATUS64 nt_query_vm64(
 
   return status;
 }
+
+NTSTATUS64 nt_allocate_vm64(
+  HANDLE handle,
+  U64* allocated_address,
+  ULONG zero_bits,
+  U64* region_size,
+  ULONG allocation_type,
+  ULONG protect) {
+  static SYSCALL_ENTRY nt_allocate_vm = syscall_find_syscall( "NtAllocateVirtualMemory"fnv );
+
+  REG64 handle64 = (U64)handle;
+  REG64 allocated_address64 = (U64)allocated_address;
+  REG64 zero_bits64 = (U64)zero_bits;
+  REG64 region_size64 = (U64)region_size;
+  REG64 allocation_type64 = (U64)allocation_type;
+  REG64 protect64 = (U64)protect;
+
+  NTSTATUS64 status = syscall_execute( nt_allocate_vm.idx,
+    handle64,
+    allocated_address64,
+    zero_bits64,
+    region_size64,
+    allocation_type64,
+    protect64
+  );
+
+  return status;
+}
+
+NTSTATUS64 nt_query_system_information64(
+  SYSTEM_INFORMATION_CLASS info_class,
+  void* system_information,
+  ULONG system_infromation_length,
+  ULONG* return_length
+) {
+  static SYSCALL_ENTRY nt_query_system_info = syscall_find_syscall( "NtQuerySystemInformation"fnv );
+
+  REG64 info_class64 = (U64)info_class;
+  REG64 system_information64 = (U64)system_information;
+  REG64 system_information_length64 = (U64)system_infromation_length;
+  REG64 return_length64 = (U64)return_length;
+
+  NTSTATUS64 status = syscall_execute( nt_query_system_info.idx,
+    info_class64,
+    system_information64,
+    system_information_length64,
+    return_length64
+  );
+
+  return status;
+}

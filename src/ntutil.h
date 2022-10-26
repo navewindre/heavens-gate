@@ -99,3 +99,26 @@ extern NTSTATUS64 nt_query_vm64(
   U64 memory_information_length,
   U64* return_length = 0
 );
+
+extern NTSTATUS64 nt_allocate_vm64(
+  HANDLE handle,
+  U64* allocated_address,
+  ULONG zero_bits,
+  U64* region_size,
+  ULONG allocation_type,
+  ULONG protect
+);
+
+extern NTSTATUS64 nt_free_vm64(
+  HANDLE handle,
+  U64* address,
+  U64* size,
+  ULONG free_type
+);
+
+extern NTSTATUS64 nt_query_system_information64(
+  SYSTEM_INFORMATION_CLASS info_class,
+  void* system_information,
+  ULONG system_infromation_length,
+  ULONG* return_length
+);

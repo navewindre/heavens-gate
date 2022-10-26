@@ -108,6 +108,7 @@ void hack_print_offset( U8 line, const char* name, ULONG offset ) {
   
   con_set_line_subtext( line, u_num_to_string_hex( offset ), false, color );
 }
+
 void hack_init( CSGO* p ) {
   con_clear();
   

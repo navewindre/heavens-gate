@@ -58,38 +58,56 @@ public:
   };
 
   I8 open() {
-    HANDLE          t32_snapshot;
-    PROCESSENTRY32  proc_entry;
+    const U32 PINFO_ALLOC_SIZE = 0x400000;
+    _SYSTEM_PROCESS_INFORMATION64* pinfo;
+    ULONG received_bytes;
 
-    t32_snapshot = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
-    proc_entry.dwSize = sizeof( proc_entry );
+    pinfo = (_SYSTEM_PROCESS_INFORMATION64*)VirtualAlloc(
+      0,
+      PINFO_ALLOC_SIZE,
+      MEM_COMMIT | MEM_RESERVE,
+      PAGE_READWRITE
+    );
+  
+    NTSTATUS64 status = nt_query_system_information64(
+      SystemProcessInformation,
+      pinfo,
+      PINFO_ALLOC_SIZE,
+      &received_bytes
+    );
 
-    for ( Process32First( t32_snapshot, &proc_entry );
-      Process32Next( t32_snapshot, &proc_entry );
-      ) {
-      if ( !strcmp( proc_entry.szExeFile, m_name ) ) {
-        CloseHandle( t32_snapshot );
-        m_id = proc_entry.th32ProcessID;
+    if( status != STATUS_SUCCESS )
+      return 0;
 
-        _OBJECT_ATTRIBUTES64 obj_attributes{};
-        _CLIENT_ID_T<U64> cid;
-
-        cid.UniqueProcess = (U64)( UlongToHandle( m_id ) );
-        cid.UniqueThread = 0;
-        obj_attributes.Length = sizeof( obj_attributes );
-
-        NTSTATUS64 status = nt_open_process64(
-          &m_base,
-          PROCESS_ALL_ACCESS, 
-          &obj_attributes,
-          &cid
-        );
-
-        return status == STATUS_SUCCESS;
+    do {
+      if( pinfo->ImageName.Buffer ) {
+        STR< 128 > pname = u_widebyte_to_ansi( (wchar_t*)(U32)pinfo->ImageName.Buffer );
+        if( !strcmp( pname, m_name ) ) {
+          m_id = (I32)pinfo->UniqueProcessId;
+          break;
+        }
       }
-    }
 
-    return 0;
+      pinfo = (decltype( pinfo ))( (U32)pinfo + pinfo->NextEntryOffset );
+    } while( !!pinfo->NextEntryOffset );
+  
+    VirtualFree( pinfo, PINFO_ALLOC_SIZE, MEM_FREE );
+
+    _OBJECT_ATTRIBUTES64 obj_attributes{};
+    _CLIENT_ID_T<U64> cid;
+
+    cid.UniqueProcess = (U64)( UlongToHandle( m_id ) );
+    cid.UniqueThread = 0;
+    obj_attributes.Length = sizeof( obj_attributes );
+
+    status = nt_open_process64(
+      &m_base,
+      PROCESS_ALL_ACCESS, 
+      &obj_attributes,
+      &cid
+    );
+
+    return status == STATUS_SUCCESS;
   }
 
   U32 get_module( const char* name, U32* out_size = 0 ) {

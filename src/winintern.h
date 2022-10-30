@@ -124,22 +124,29 @@ struct _PEB_LDR_DATA_T
 
 };
 
+struct PROCESS_BASIC_INFORMATION64 {
+  LONG ExitStatus;
+  U64  PebBaseAddress;
+  U64  AfiinityMask;
+  LONG BasePriority;
+  U64  UniqueProcessId;
+  U64  InheritedFromUniqueProcessId;
+};
+
 template <class T, class NGF, int A>
 struct _PEB_T
 {
-    union
-    {
-        struct
-        {
-            BYTE InheritedAddressSpace;
-            BYTE ReadImageFileExecOptions;
-            BYTE BeingDebugged;
-            BYTE BitField;
-        };
-        T dummy01;
-    };
-    T Mutant;
-    T ImageBaseAddress;
+  UCHAR InheritedAddressSpace;
+  UCHAR ReadImageFileExecOptions;
+  UCHAR BeingDebugged;
+  UCHAR BitField;
+  ULONG ImageUsesLargePages: 1;
+  ULONG IsProtectedProcess: 1;
+  ULONG IsLegacyProcess: 1;
+  ULONG IsImageDynamicallyRelocated: 1;
+  ULONG SpareBits: 4;
+  T Mutant;
+  T ImageBaseAddress;
     T Ldr;
     T ProcessParameters;
     T SubSystemData;

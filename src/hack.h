@@ -112,8 +112,8 @@ void hack_print_offset( U8 line, const char* name, ULONG offset ) {
 void hack_init( CSGO* p ) {
   con_clear();
   
-  p->client = p->get_module( "client.dll" );
-  p->engine = p->get_module( "engine.dll" );
+  p->client = p->get_module32( "client.dll"fnv );
+  p->engine = p->get_module32( "engine.dll"fnv );
 
   con_set_bottomline_text( "searching for signatures..." );
   

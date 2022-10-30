@@ -210,3 +210,29 @@ NTSTATUS64 nt_query_system_information64(
 
   return status;
 }
+
+NTSTATUS64 nt_query_information_process64(
+  HANDLE handle,
+  PROCESSINFOCLASS info_class,
+  void* process_information,
+  ULONG process_information_length,
+  ULONG* out_information_length
+) {
+  static SYSCALL_ENTRY nt_query_info_process = syscall_find_syscall64( "NtQueryInformationProcess"fnv );
+  
+  REG64 handle64 = (U64)handle;
+  REG64 info_class64 = (U64)info_class;
+  REG64 process_info64 = (U64)process_information;
+  REG64 process_info_length64 = (U64)process_information_length;
+  REG64 out_info_length64 = (U64)out_information_length;
+
+  NTSTATUS64 status = syscall_execute( nt_query_info_process.idx,
+    handle64,
+    info_class64,
+    process_info64,
+    process_info_length64,
+    out_info_length64
+  );
+
+  return status;
+}

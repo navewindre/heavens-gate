@@ -8,8 +8,10 @@
 #include "ntutil.h"
 #include "winintern.h"
 #include "typedef.h"
+#include "fnv.h"
+#include "syscall.h"
 
-class PROCESS {
+class PROCESS32 {
 private:
   HANDLE      m_base{};
   I32         m_id{};
@@ -52,7 +54,7 @@ private:
   }
   
 public:
-  PROCESS( const char* name ) {
+  PROCESS32( const char* name ) {
     memset( m_name, 0, 256 );
     memcpy( m_name, name, strlen( name ) );
   };
@@ -110,25 +112,63 @@ public:
     return status == STATUS_SUCCESS;
   }
 
-  U32 get_module( const char* name, U32* out_size = 0 ) {
-    HANDLE    t32_snapshot;
-    MODULEENTRY32 mod_entry;
+  U32 get_module_size( U32 module_base ) {
+    
+  }
+
+  U32 get_module32( FNV1A name, U32* out_size = 0 ) {
+    U64        peb32_addr;
+    NTSTATUS64 status;
 
     if( !m_id )
       return U32{};
 
-    t32_snapshot = CreateToolhelp32Snapshot( TH32CS_SNAPMODULE, m_id );
-    mod_entry.dwSize = sizeof( mod_entry );
+    ULONG out_ret = 0;
+    status = nt_query_information_process64(
+      m_base,
+      ProcessWow64Information,
+      &peb32_addr,
+      sizeof( U64 ),
+      &out_ret
+    );
 
-    for( Module32First( t32_snapshot, &mod_entry );
-      Module32Next( t32_snapshot, &mod_entry );
-    ) {
-      if( !strcmp( mod_entry.szModule, name ) ) {
-        CloseHandle( t32_snapshot );
-        if( out_size )
-          *out_size = mod_entry.modBaseSize;
-        return U32( mod_entry.modBaseAddr );
-      }
+    if( status != STATUS_SUCCESS ) {
+      return 0;
+    }
+
+    PEB* peb = (PEB*)VirtualAlloc(
+      0,
+      sizeof( PEB ),
+      MEM_COMMIT | MEM_RESERVE,
+      PAGE_READWRITE
+    );
+
+    read( peb32_addr, peb, sizeof( PEB ) );
+
+    PEB_LDR_DATA ldr;
+    read( (U32)peb->Ldr, &ldr, sizeof( ldr ) );
+
+    VirtualFree( peb, sizeof( PEB64 ), MEM_FREE );
+
+    U64 root = (U32)ldr.InMemoryOrderModuleList.Flink;
+    for( U32 entry = read<U32>( root ); entry != root; entry = read<U32>( entry ) ) {
+      LDR_DATA_TABLE_ENTRY data_table{};
+      read( entry, &data_table, sizeof( data_table ) );
+      
+      if( !data_table.FullDllName.Buffer )
+        continue;
+
+      wchar_t module_buffer[256]{};
+      read(
+        (U64)data_table.FullDllName.Buffer,
+        module_buffer, 256 * sizeof( wchar_t )
+      );
+
+      STR<256> module_name = u_widebyte_to_ansi<256>( module_buffer );
+      FNV1A module_hash = fnv1a( module_name );
+
+      if( module_hash == name )
+        return (U32)data_table.Reserved2[0];
     }
 
     return U32{};
@@ -173,29 +213,29 @@ public:
 
   I32 get_id() { return m_id; }
 
-  template < typename t > void write( U32 address, const t& value ) {
+  template < typename t > void write( U64 address, const t& value ) {
     nt_write_vm64( m_base, address, (void*)&value, sizeof( t ) );
   }
 
-  void write( U32 address, void* buffer, U32 size ) {
+  void write( U64 address, void* buffer, U32 size ) {
     nt_write_vm64( m_base, address, buffer, size );
   }
 
-  template < typename t > t read( U32 address ) {
+  template < typename t > t read( U64 address ) {
     t buffer{};
     read( address, &buffer, sizeof( t ) );
 
     return buffer;
   }
 
-  void read( U32 address, void* out, U32 size ) {
+  void read( U64 address, void* out, U32 size ) {
     nt_read_vm64( m_base, address, out, size );
   }
 };
 
-class CSGO : public PROCESS {
+class CSGO : public PROCESS32 {
 public:
-  CSGO() : PROCESS( "csgo.exe" ) {};
+  CSGO() : PROCESS32( "csgo.exe" ) {};
 
   U32 client;
   U32 engine;

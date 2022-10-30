@@ -2,10 +2,10 @@
 // github.com/navewindre
 
 #pragma once
-
 #include <windows.h>
+#include "typedef.h"
 
-#include "syscall.h"
+extern ULONG u_thread_create( LPTHREAD_START_ROUTINE routine, void* param = 0 );
 
 template < U32 size >
 struct STR {
@@ -19,17 +19,6 @@ struct STR {
   char data[size]{};
 };
 
-inline ULONG u_thread_create( LPTHREAD_START_ROUTINE routine, void* param = 0 ) {
-  REG64                thread;
-  ULONG                ret_id;
-
-  nt_create_thread64( &thread, 0x1fffff, 0, GetCurrentProcess(), routine, param, 0 ); 
-  ret_id = GetThreadId( (HANDLE)thread.u32[0] );
-
-  nt_close64( thread );
-  
-  return ret_id;
-}
 
 template < typename t >
 STR< 32 > u_num_to_string_hex( t num ) {
@@ -48,4 +37,34 @@ STR< size > u_widebyte_to_ansi( wchar_t* str ) {
   }
 
   return ret;
+}
+
+inline U8 u_set_debug_privilege() {
+  HANDLE           token;
+  TOKEN_PRIVILEGES tkp{};
+
+  if( !OpenProcessToken(
+    GetCurrentProcess(),
+    TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
+    &token
+  ) ) {
+    return 0;
+  }
+
+  if( !LookupPrivilegeValueA( 0, SE_DEBUG_NAME, &tkp.Privileges->Luid ) ) {
+    CloseHandle( token );
+    return 0;
+  }
+
+  tkp.PrivilegeCount = 1;
+  tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+  if( !AdjustTokenPrivileges( token, false, &tkp, 0, nullptr, 0 ) ) {
+    CloseHandle( token );
+    return 0;
+  }
+
+  CloseHandle( token );
+
+  return 1;
 }

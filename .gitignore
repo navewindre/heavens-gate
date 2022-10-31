@@ -41,3 +41,4 @@ src/Debug/*
 src/Release/*
 src/X64/*
 .idea/*
+.vs/*

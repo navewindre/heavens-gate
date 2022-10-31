@@ -22,7 +22,7 @@ void con_init() {
     DISABLE_NEWLINE_AUTO_RETURN|ENABLE_WINDOW_INPUT|ENABLE_VIRTUAL_TERMINAL_INPUT
   );
 
-  SetConsoleTitleA( "TESTING" );
+  SetConsoleTitleA( "heaven's gate" );
 
   for( U8 i = 0; i < CON_MAX_HEIGHT; ++i ) {
     con_lines[i].line_num = -1;

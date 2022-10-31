@@ -7,7 +7,7 @@
 #include "conin.h"
 #include "menu.h"
 
-I32 main() {
+I32 __cdecl main() {
   con_init();
 
   u_thread_create( &con_handler ); 

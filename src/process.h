@@ -112,8 +112,14 @@ public:
     return status == STATUS_SUCCESS;
   }
 
-  U32 get_module_size( U32 module_base ) {
-    
+  U32 get_module_size32( U64 module_base ) {
+   IMAGE_NT_HEADERS nt_headers;
+   IMAGE_DOS_HEADER dos_header;
+
+    read( module_base, &dos_header, sizeof( dos_header ) );
+    read( module_base + dos_header.e_lfanew, &nt_headers, sizeof( nt_headers ) );
+
+    return nt_headers.OptionalHeader.SizeOfImage;
   }
 
   U32 get_module32( FNV1A name, U32* out_size = 0 ) {
@@ -132,9 +138,8 @@ public:
       &out_ret
     );
 
-    if( status != STATUS_SUCCESS ) {
+    if( status != STATUS_SUCCESS )
       return 0;
-    }
 
     PEB* peb = (PEB*)VirtualAlloc(
       0,
@@ -167,8 +172,11 @@ public:
       STR<256> module_name = u_widebyte_to_ansi<256>( module_buffer );
       FNV1A module_hash = fnv1a( module_name );
 
-      if( module_hash == name )
+      if( module_hash == name ) {
+        if( out_size )
+          *out_size = *(U32*)&data_table.Reserved3[0];
         return (U32)data_table.Reserved2[0];
+      }
     }
 
     return U32{};
@@ -180,13 +188,9 @@ public:
     if( !sig_bytes || sig_length <= 2 )
       return 0;
 
-    MODULEINFO module{};
-    U32        module_size;
-    K32GetModuleInformation( m_base, (HMODULE)module_base, &module, sizeof( MODULEINFO ) );
-    module_size = module.SizeOfImage;
-    
     MEMORY_BASIC_INFORMATION64 mbi{0};
-
+    U32 module_size = get_module_size32( module_base );
+    
     for( U64 off = 0; off < module_size; off += mbi.RegionSize ) {
       nt_query_vm64( m_base, module_base + off, MemoryRegionInfo, &mbi, sizeof( mbi ) );
       

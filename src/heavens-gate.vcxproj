@@ -111,6 +111,7 @@
   <ItemGroup>
     <ClInclude Include="asmutil.h" />
     <ClInclude Include="fnv.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="vars.h" />
     <ClInclude Include="conout.h" />
     <ClInclude Include="conin.h" />
@@ -125,6 +126,12 @@
     <ClInclude Include="util.h" />
     <ClInclude Include="winintern.h" />
     <ClInclude Include="x86.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="heavens-gate.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\resource\heavens-gate-ico.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -8,6 +8,8 @@
     <ClCompile Include="conout.cpp">
       <Filter>Console</Filter>
     </ClCompile>
+    <ClCompile Include="ntutil.cpp" />
+    <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="typedef.h" />
@@ -50,6 +52,9 @@
     <ClInclude Include="vars.h">
       <Filter>Config</Filter>
     </ClInclude>
+    <ClInclude Include="fnv.h" />
+    <ClInclude Include="x86.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Console">
@@ -67,5 +72,11 @@
     <Filter Include="Config">
       <UniqueIdentifier>{55f07d41-9e36-4718-b51c-f6883ca4d543}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="heavens-gate.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\resource\heavens-gate-ico.ico" />
   </ItemGroup>
 </Project>

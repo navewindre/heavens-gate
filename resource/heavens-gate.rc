@@ -52,7 +52,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON                    "C:\\Users\\alex\\Documents\\heavens-gate-git\\resource\\heavens-gate-ico.ico"
+IDI_ICON1               ICON                    "..\\resource\\heavens-gate-ico.ico"
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////

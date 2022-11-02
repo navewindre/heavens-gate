@@ -11,6 +11,13 @@
 #include "fnv.h"
 #include "syscall.h"
 
+struct MODULE_ENTRY {
+  U64     base;
+  U64     size;
+  STR<64> name;
+  FNV1A   hash;
+};
+
 class PROCESS32 {
 private:
   HANDLE      m_base{};
@@ -58,6 +65,8 @@ public:
     memset( m_name, 0, 256 );
     memcpy( m_name, name, strlen( name ) );
   };
+
+  HANDLE get_base() { return m_base; }
 
   I8 open() {
     const U32 PINFO_ALLOC_SIZE = 0x400000;
@@ -122,12 +131,13 @@ public:
     return nt_headers.OptionalHeader.SizeOfImage;
   }
 
-  U32 get_module32( FNV1A name, U32* out_size = 0 ) {
-    U64        peb32_addr;
-    NTSTATUS64 status;
+  std::vector< MODULE_ENTRY > dump_modules32() {
+    std::vector< MODULE_ENTRY > ret;
+    U64                         peb32_addr;
+    NTSTATUS64                  status;
 
     if( !m_id )
-      return U32{};
+      return ret;
 
     ULONG out_ret = 0;
     status = nt_query_information_process64(
@@ -139,7 +149,7 @@ public:
     );
 
     if( status != STATUS_SUCCESS )
-      return 0;
+      return ret;
 
     PEB* peb = (PEB*)VirtualAlloc(
       0,
@@ -170,16 +180,33 @@ public:
       );
 
       STR<256> module_name = u_widebyte_to_ansi<256>( module_buffer );
-      FNV1A module_hash = fnv1a( module_name );
+      FNV1A    module_hash = fnv1a( module_name );
+      U64      module_base = (U32)data_table.Reserved2[0];
+      U64      module_size = *(U32*)((U32)&data_table + 0x20);
 
-      if( module_hash == name ) {
+      ret.push_back( {
+        module_base,
+        module_size,
+        module_name.data,
+        module_hash
+      } );
+    }
+
+    return ret;
+  }
+
+  U32 get_module32( FNV1A name, U32* out_size = 0 ) {
+    std::vector< MODULE_ENTRY > modules = dump_modules32();
+    for( auto& it : modules ) {
+      if( it.hash == name ) {
         if( out_size )
-          *out_size = *(U32*)&data_table.Reserved3[0];
-        return (U32)data_table.Reserved2[0];
+          *out_size = (U32)it.size;
+
+        return (U32)it.base;
       }
     }
 
-    return U32{};
+    return 0;
   }
 
   U32 code_match( U32 module_base, const char* sig ) {

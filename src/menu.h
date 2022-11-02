@@ -1,12 +1,13 @@
+#pragma once
 #include <thread>
 
-#include "conin.h"
 #include "process.h"
-#include "conout.h"
 #include "util.h"
 #include "vars.h"
 
-void syscall_dump_to_file() {
+#include "csgo/interface.h"
+
+static void syscall_dump_to_file() {
   static std::vector< SYSCALL_ENTRY > syscalls = syscall_dump();
   static std::vector< SYSCALL_ENTRY > syscalls64 = syscall_dump64();
   static std::vector< MODULE_EXPORT64 > nt64_exports = module_get_exports64( nt_get_address64() );
@@ -49,113 +50,20 @@ void syscall_dump_to_file() {
   free( syscall_str );
 }
 
-void menu_show_ui( CSGO *p ) {
-  con_clear();
-  con_capturing_input = true;
+static void csgo_dump_ifaces_to_file( CSGO* p ) {
+  std::vector< IFACE_ENTRY > ifaces = srceng_get_interfaces( p );
+  static char iface_str[999999]{};
 
-  con_set_line_text( 0,"bhop",false );
-  con_set_line_subtext(
-    0,
-    bhop_active? "[on]" : "[off]",
-    true,
-    bhop_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
-  );
+  memset( iface_str, 0, sizeof( iface_str ) );
+  char line_buf[256]{};
+  for( auto& it : ifaces ) {
+    sprintf( line_buf, "%s -> %08x in [%s]\n", it.name.data, it.ptr, it.module_name.data );
+    strcat( iface_str, line_buf );
+  }
 
-  con_set_line_callback(0,[]( CON_LINE *self,U8 action ) {
-    bhop_active = !bhop_active;
-    con_set_line_subtext(
-      0,
-      bhop_active? "[on]" : "[off]",
-      self->active,
-      bhop_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
-    );
-  });
-
-  con_set_line_text(1, "glow", false);
-  con_set_line_subtext(
-    1,
-    glow_active? "[on]" : "[off]",
-    false,
-    glow_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
-  );
-
-  con_set_line_callback( 1, []( CON_LINE *self,U8 action ) {
-    glow_active = !glow_active;
-    con_set_line_subtext(
-      1,
-      glow_active? "[on]" : "[off]",
-      self->active,
-      glow_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
-    );
-  });
-
-
-  con_set_line_text( 2, "triggerbot", false);
-  con_set_line_subtext(
-    2,
-    key_titles[triggerbot_key],
-    false,
-    CONFG_LIGHTBLUE
-  );
-
-  con_set_line_callback( 2,[]( CON_LINE *,U8 action ) {
-    if( action == LINE_ACTION_ENTER ) {
-      con_update_hotkey( 2 , triggerbot_key);
-    }
-    } );
-
-  con_set_line_text( 3, "display color pallette" );
-  con_set_line_subtext(
-    3,
-    key_titles[0x0D],
-    false,
-    CONFG_LIGHTBLUE
-  );
-
-  con_set_line_callback( 3, []( CON_LINE *,U8 action ) {
-    static bool toggle;
-    if( action == LINE_ACTION_ENTER ) {
-      if( !toggle )
-        con_print_colors();
-      else {
-        con_refresh();
-      }
-
-      toggle = !toggle;
-    }
-  } );
-
-  con_set_line_text( 4, "dump syscalls to syscall_arch.dump", false );
-  con_set_line_subtext(
-    4,
-    key_titles[VK_RETURN],
-    false,
-    CONFG_LIGHTBLUE
-  );
-
-  con_set_line_callback( 4, []( CON_LINE*, U8 action ) {
-    if( action == LINE_ACTION_ENTER )
-      syscall_dump_to_file();
-  } );
-
-  /*
-  con_set_line_text(4,"test input");
-  con_set_line_subtext(
-    4,
-    key_titles[trigger_key],
-    false,
-    CONFG_LIGHTBLUE
-  );
-
-  con_set_line_callback(4,[](CON_LINE *,U8 action) {
-    if( action==LINE_ACTION_ENTER ) {
-      con_triggerkey_update( 4 );
-    }
-    });
-    */
-
-  con_set_bottomline_text(
-    "LOCALPLAYER: %08X | FLAGS: %08X | menu",
-    p->read< U32 >( localplayer_ptr ),0x0
-  );
+  FILE* dump = fopen( "./interfaces.dump", "w" );
+  fwrite( iface_str, strlen( iface_str ), 1, dump );
+  fclose( dump ); 
 }
+
+extern void menu_show_ui( CSGO* p );

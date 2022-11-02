@@ -2,7 +2,7 @@
 // github.com/navewindre
 
 #include <thread>
-#include "hack.h"
+#include "csgo/hack.h"
 #include "util.h"
 #include "conin.h"
 #include "menu.h"

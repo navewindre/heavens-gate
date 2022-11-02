@@ -171,23 +171,24 @@
   <ItemGroup>
     <ClCompile Include="conout.cpp" />
     <ClCompile Include="conin.cpp" />
+    <ClCompile Include="menu.cpp" />
     <ClCompile Include="ntutil.cpp" />
     <ClCompile Include="source.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asmutil.h" />
+    <ClInclude Include="csgo\interface.h" />
+    <ClInclude Include="csgo\sdk.h" />
     <ClInclude Include="fnv.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="vars.h" />
     <ClInclude Include="conout.h" />
     <ClInclude Include="conin.h" />
-    <ClInclude Include="hack.h" />
     <ClInclude Include="mathutil.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="ntutil.h" />
     <ClInclude Include="process.h" />
-    <ClInclude Include="sdk.h" />
     <ClInclude Include="syscall.h" />
     <ClInclude Include="typedef.h" />
     <ClInclude Include="util.h" />
@@ -195,10 +196,18 @@
     <ClInclude Include="x86.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="heavens-gate.rc" />
+    <Image Include="..\resource\heavens-gate-ico.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\resource\heavens-gate-ico.ico" />
+    <ResourceCompile Include="..\resource\heavens-gate.rc">
+      <ResourceOutputFileName>Debug\%(Filename).res</ResourceOutputFileName>
+      <Culture>0x0409</Culture>
+      <TrackerLogDirectory>Debug\heavens-gate.tlog\</TrackerLogDirectory>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <UseResponseFile>false</UseResponseFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <LinkCompiled>true</LinkCompiled>
+    </ResourceCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

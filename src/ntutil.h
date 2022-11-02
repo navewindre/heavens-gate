@@ -16,7 +16,7 @@ struct MODULE_EXPORT {
 };
 
 struct MODULE_EXPORT64 {
-  STR<64> name;
+  STR<256> name;
   U64 base;
 };
 
@@ -75,9 +75,7 @@ inline std::vector< MODULE_EXPORT > module_get_exports( void* module_base ) {
   }
 
   return ret;
-}
-
-
+};
 
 extern NTSTATUS64 nt_create_thread64(
   REG64* thread,
@@ -163,36 +161,71 @@ extern NTSTATUS64 nt_query_information_process64(
   ULONG* out_information_length
 );
 
-inline std::vector< MODULE_EXPORT64 > module_get_exports64( U64 module_base ) {
+inline std::vector< MODULE_EXPORT64 > module_get_exports( U32 module_base, HANDLE proc = (HANDLE)-1 ) {
+  std::vector< MODULE_EXPORT64 > ret;
+  IMAGE_DOS_HEADER               dos_header;
+  IMAGE_NT_HEADERS               nt_headers;
+  U32                            data_dir;
+  IMAGE_EXPORT_DIRECTORY         export_dir;
+
+  nt_read_vm64( proc, module_base, &dos_header, sizeof( dos_header ) );
+  nt_read_vm64( proc, module_base + dos_header.e_lfanew, &nt_headers, sizeof( nt_headers ) );
+  data_dir = nt_headers.OptionalHeader.DataDirectory[0].VirtualAddress;
+  nt_read_vm64( proc, module_base + data_dir, &export_dir, sizeof( export_dir ) );
+
+  U32 names = module_base + export_dir.AddressOfNames;
+  U32 funcs = module_base + export_dir.AddressOfFunctions;
+  U32 ords = module_base + export_dir.AddressOfNameOrdinals;
+
+  char name[256]{};
+  U32  func = 0;
+  U16  ord;
+  U32  str_ptr = 0;
+
+  for( U32 i = 0; i < export_dir.NumberOfNames; ++i ) {
+    nt_read_vm64( proc, names + 0x4 * i, &str_ptr, 0x4 );
+    nt_read_vm64( proc, module_base + str_ptr, name, 256 );
+
+    nt_read_vm64( proc, ords + 0x2 * i, &ord, 0x2 );
+    nt_read_vm64( proc, funcs + 0x4 * ord, &func, 0x4 );
+    
+    name[255] = 0;
+    ret.push_back( { STR<256>( name ), module_base + func } );
+  }
+
+  return ret;
+}
+
+inline std::vector< MODULE_EXPORT64 > module_get_exports64( U64 module_base, HANDLE proc = (HANDLE)-1 ) {
   std::vector< MODULE_EXPORT64 > ret;
   IMAGE_DOS_HEADER               dos_header;
   IMAGE_NT_HEADERS64             nt_headers;
   U64                            data_dir;
   IMAGE_EXPORT_DIRECTORY         export_dir;
 
-  nt_read_vm64( (HANDLE)-1, module_base, &dos_header, sizeof( dos_header ) );
-  nt_read_vm64( (HANDLE)-1, module_base + dos_header.e_lfanew, &nt_headers, sizeof( nt_headers ) );
+  nt_read_vm64( proc, module_base, &dos_header, sizeof( dos_header ) );
+  nt_read_vm64( proc, module_base + dos_header.e_lfanew, &nt_headers, sizeof( nt_headers ) );
   data_dir = nt_headers.OptionalHeader.DataDirectory[0].VirtualAddress;
-  nt_read_vm64( (HANDLE)-1, module_base + data_dir, &export_dir, sizeof( export_dir ) );
+  nt_read_vm64( proc, module_base + data_dir, &export_dir, sizeof( export_dir ) );
 
   U64 names = module_base + export_dir.AddressOfNames;
   U64 funcs = module_base + export_dir.AddressOfFunctions;
   U64 ords = module_base + export_dir.AddressOfNameOrdinals;
 
-  char name[64]{};
+  char name[256]{};
   U64  func = 0;
   U16  ord;
   U64  str_ptr = 0;
 
   for( U32 i = 0; i < export_dir.NumberOfNames; ++i ) {
-    nt_read_vm64( (HANDLE)-1, names + 0x4 * i, &str_ptr, 0x4 );
-    nt_read_vm64( (HANDLE)-1, module_base + str_ptr, name, 64, 0 );
+    nt_read_vm64( proc, names + 0x4 * i, &str_ptr, 0x4 );
+    nt_read_vm64( proc, module_base + str_ptr, name, 256, 0 );
 
-    nt_read_vm64( (HANDLE)-1, ords + 0x2 * i, &ord, 0x2 );
-    nt_read_vm64( (HANDLE)-1, funcs + 0x4 * ord, &func, 0x4 );
+    nt_read_vm64( proc, ords + 0x2 * i, &ord, 0x2 );
+    nt_read_vm64( proc, funcs + 0x4 * ord, &func, 0x4 );
 
     
-    ret.push_back( { STR<64>( name ), module_base + func } );
+    ret.push_back( { STR<128>( name ), module_base + func } );
   }
 
   return ret;

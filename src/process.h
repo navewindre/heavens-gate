@@ -1,9 +1,6 @@
 #pragma once
 #include <Windows.h>
-#include <inttypes.h>
 #include <TlHelp32.h>
-#include <string>
-#include <Psapi.h>
 
 #include "ntutil.h"
 #include "winintern.h"
@@ -130,6 +127,36 @@ public:
 
     return nt_headers.OptionalHeader.SizeOfImage;
   }
+
+  U64 get_module_size64( U64 module_base ) {
+    IMAGE_NT_HEADERS64 nt_headers;
+    IMAGE_DOS_HEADER   dos_header;
+
+    read( module_base, &dos_header, sizeof( dos_header ) );
+    read( module_base + dos_header.e_lfanew, &nt_headers, sizeof( nt_headers ) );
+
+    return nt_headers.OptionalHeader.SizeOfImage;
+  }
+
+  // someone finish this
+  /*
+  std::vector< MODULE_ENTRY > dump_modules64() {
+    std::vector< MODULE_ENTRY >  ret;
+    PROCESS_BASIC_INFORMATION64* pbi;
+    ULONG                        pbi_len;
+    NTSTATUS64                   status;
+
+    status = nt_query_information_process64(
+      m_base,
+      ProcessBasicInformation,
+      nullptr,
+      0,
+      &pbi_len
+    );
+
+    printf( "%08x %08x\n", status );
+  }
+  */
 
   std::vector< MODULE_ENTRY > dump_modules32() {
     std::vector< MODULE_ENTRY > ret;

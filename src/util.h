@@ -3,6 +3,7 @@
 
 #pragma once
 #include <windows.h>
+#include <stdio.h>
 #include "typedef.h"
 
 extern ULONG u_thread_create( LPTHREAD_START_ROUTINE routine, void* param = 0 );

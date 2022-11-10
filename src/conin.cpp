@@ -6,6 +6,9 @@
 #include "vars.h"
 #include <cstdio>
 #include "mathutil.h"
+#include "process.h"
+#include "csgo/csgoplayer.h"
+#include "csgo/hack.h"
 
 U8*  con_key_states = (U8*)malloc( 256 );
 bool con_capturing_input = false;
@@ -145,11 +148,11 @@ void con_parse_events( HANDLE stdi ) {
   }
 }
 
-ULONG __stdcall con_handler( void * ) {
+ULONG __stdcall con_handler( void* ) {
   HANDLE stdi = GetStdHandle( STD_INPUT_HANDLE );
   for( ;; ) {
     con_parse_events( stdi );
-
+    
     Sleep( 1 );
   }
 }

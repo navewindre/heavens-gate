@@ -236,3 +236,21 @@ NTSTATUS64 nt_query_information_process64(
 
   return status;
 }
+
+NTSTATUS64 nt_delay_execution64(
+  BOOLEAN alterable,
+  LARGE_INTEGER* delay_interval
+) {
+  static SYSCALL_ENTRY nt_delay_execution = syscall_find_syscall64( "NtDelayExecution"fnv );
+
+  REG64 alterable64 = (U64)alterable;
+  REG64 delay_interval64 = (U64)delay_interval;
+
+  NTSTATUS64 status = syscall_execute( nt_delay_execution.idx,
+    alterable64,
+    delay_interval64
+  );
+
+  return status;
+}
+

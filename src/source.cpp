@@ -1,7 +1,6 @@
 // by navewindre
 // github.com/navewindre
 
-#include <thread>
 #include "csgo/hack.h"
 #include "util.h"
 #include "conin.h"
@@ -9,26 +8,16 @@
 
 I32 __cdecl main() {
   con_init();
+  PROCESS32* p = hack_init();
 
-  u_thread_create( &con_handler ); 
   u_thread_create( &con_hook_handler );
-
-  CSGO p{};
-
-  while( !p.open() ) {
-    con_set_bottomline_text( "waiting for process..." );
-    Sleep( 100 );
-  }
+  u_thread_create( &con_handler );
   
-  hack_init( &p );
   Sleep( 1000 );
-  menu_show_ui( &p );
+  settings_holder.load();
+  menu_show_ui( p );
   
-  for ( ;; ) {
-    hack_run_bhop( &p );
-    hack_run_trigger( &p );
-    hack_run_glow( &p );
-    
-    std::this_thread::sleep_for( 1ms );
+  for( ;; ) {
+    hack_run( p ); 
   }
 }

@@ -8,7 +8,7 @@
 constexpr U8 CON_WIDTH = 52;
 constexpr U8 CON_HEIGHT = 16;
 constexpr U8 CON_MAX_WIDTH  = CON_WIDTH - 6;
-constexpr U8 CON_MAX_HEIGHT = CON_HEIGHT - 6;
+constexpr U8 CON_MAX_HEIGHT = CON_HEIGHT - 5;
 constexpr U8 CON_TITLE_HEIGHT = 4;
 constexpr U8 LINE_INACTIVE = 0xff;
 
@@ -59,7 +59,7 @@ enum LineActionType_t {
 typedef void( *LINE_CALLBACK )( struct CON_LINE* self, U8 action );
 
 struct CON_LINE {
-  char text[44];
+  char text[CON_MAX_WIDTH + 1];
   char subtext[12];
 
   U8 text_col = 15;

@@ -9,6 +9,7 @@
 #include "util.h"
 #include "conout.h"
 
+CRITICAL_SECTION con_mutex;
 CON_LINE* con_lines = (CON_LINE*)malloc( sizeof( CON_LINE ) * ( CON_MAX_HEIGHT + 1 ) );
 U8        con_selected_line = 0;
 
@@ -16,6 +17,10 @@ void con_init() {
   AllocConsole();
   freopen( "CONOUT$","w",stdout );
 
+  if( !con_mutex.SpinCount ) {
+    InitializeCriticalSectionAndSpinCount( &con_mutex, 0x100 );
+  }
+  
   HWND con_handle = GetConsoleWindow();
   SetConsoleMode(
     con_handle,
@@ -63,7 +68,7 @@ void con_resize( U8 w, U8 h ) {
   }
 }
 
-void con_print( U8 color, const char* text, ... ) {
+void con_print_internal( U8 color, const char* text, ... ) {
   SetConsoleTextAttribute( GetStdHandle( STD_OUTPUT_HANDLE ), color );
   va_list args;
   va_start( args, text );
@@ -71,10 +76,26 @@ void con_print( U8 color, const char* text, ... ) {
   va_end( args );
 }
 
+void con_print( U8 color, const char* text, ... ) {
+  if( !con_mutex.SpinCount ) {
+    InitializeCriticalSectionAndSpinCount( &con_mutex, 0x100 );
+  }
+    
+  EnterCriticalSection( &con_mutex );
+
+  SetConsoleTextAttribute( GetStdHandle( STD_OUTPUT_HANDLE ), color );
+  va_list args;
+  va_start( args, text );
+  vprintf_s( text, args );
+  va_end( args );
+
+  LeaveCriticalSection( &con_mutex );
+}
+
 void con_print_title() {
-  con_print( 133, "  =============== [ heaven's gate ] ===============  " );
-  con_print( 15, "                    [%s]\n", __DATE__ );
-  con_print( 15, "\n" );
+  con_print_internal( 133, "  =============== [ heaven's gate ] ===============  " );
+  con_print_internal( 15, "                    [%s]\n", __DATE__ );
+  con_print_internal( 15, "\n" );
 }
 
 void con_setpos( U8 x, U8 y ) {
@@ -83,6 +104,8 @@ void con_setpos( U8 x, U8 y ) {
 }
 
 void con_print_line( U8 line ) {
+  EnterCriticalSection( &con_mutex );
+
   CON_LINE* l = &con_lines[line];
   l->line_num = line;
   
@@ -90,31 +113,32 @@ void con_print_line( U8 line ) {
 
   U8 border_col = ( !l->active? CONFG_DARKGRAY : CONFG_WHITE );
   
-  con_print( border_col, " = " );
-  con_print( l->text_col, l->text );
+  con_print_internal( border_col, "\r = " );
+  con_print_internal( l->text_col, l->text );
 
   U8 spacing = CON_MAX_WIDTH - (U8)( strlen( l->text ) + strlen( l->subtext ) );
   char* spacer = (char*)_alloca( spacing + 1 );
   memset( spacer, ' ', spacing );
   spacer[spacing] = 0;
 
-  con_print( 0, spacer );
+  con_print_internal( 0, spacer );
   if( l->subtext_col > 15 || !l->active )
-    con_print( l->subtext_col, l->subtext );
+    con_print_internal( l->subtext_col, l->subtext );
   else
-    con_print( l->subtext_col + CONBG_DARKGRAY, l->subtext );
+    con_print_internal( l->subtext_col + CONBG_DARKGRAY, l->subtext );
     
-  con_print( border_col, " =" ); 
+  con_print_internal( border_col, " =" );
+  LeaveCriticalSection( &con_mutex );
 }
 
-void con_set_line( U8 line, const char* text, bool selected, U8 fg, U8 bg ) {
+void con_set_line( U8 line, const char* text, const char* subtext, bool selected, U8 fg, U8 bg ) {
   if( line > CON_MAX_HEIGHT )
     return;
 
   CON_LINE* l = &con_lines[line];
   strcpy( l->text, text );
   l->text_col = fg + bg;
-  strcpy( l->subtext, text );
+  strcpy( l->subtext, subtext );
   l->subtext_col = fg + bg;
   l->active = selected;
   
@@ -153,6 +177,8 @@ void con_set_line_callback( U8 line, LINE_CALLBACK cb ) {
 }
 
 void con_clear_line( U8 line ) {
+  EnterCriticalSection( &con_mutex );
+  
   CON_LINE* l = &con_lines[line];
 
   l->line_num   = -1;
@@ -167,7 +193,9 @@ void con_clear_line( U8 line ) {
   memset( spacer, ' ', CON_WIDTH );
   spacer[CON_WIDTH] = 0;
   
-  con_print( 0, spacer );
+  con_print_internal( 0, spacer );
+
+  LeaveCriticalSection( &con_mutex );
 }
 
 void con_clear() {
@@ -176,6 +204,8 @@ void con_clear() {
 }
 
 void con_set_bottomline_text( U8 color, const char* text, ... ) {
+  EnterCriticalSection( &con_mutex );
+  
   con_setpos( 0, CON_HEIGHT );
   setc( color );
 
@@ -194,6 +224,8 @@ void con_set_bottomline_text( U8 color, const char* text, ... ) {
   memset( str_buffer + length, ' ', spacing );
   str_buffer[CON_WIDTH] = '\0';
   WriteConsoleA( GetStdHandle( STD_OUTPUT_HANDLE ), str_buffer, CON_WIDTH, 0, 0 );
+
+  LeaveCriticalSection( &con_mutex );
 }
 
 void con_set_bottomline_text( const char* text, ... ) {
@@ -207,17 +239,21 @@ void con_set_bottomline_text( const char* text, ... ) {
 }
 
 void con_clear_bottomline_text() {
+  EnterCriticalSection( &con_mutex );
+  
   con_setpos( 0, CON_HEIGHT - 1 );
 
   char* spacer = (char*)_alloca( CON_WIDTH + 1 );
   memset( spacer, ' ', CON_WIDTH );
   spacer[CON_WIDTH] = 0;
   
-  con_print( 0, spacer );
+  con_print_internal( 0, spacer );
+
+  LeaveCriticalSection( &con_mutex );
 }
 
 void con_refresh() {
-  con_print( 0, "\r" );
+  con_print_internal( 0, "\r" );
   system( "cls" );
   con_setpos( 0, 0 );
   con_print_title();

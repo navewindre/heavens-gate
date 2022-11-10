@@ -4,18 +4,96 @@
 CSGO* csgop;
 
 const I8 MENU_PAGE_MIN = 0;
-const I8 MENU_PAGE_MAX = 0;
-I8 menu_page;
+const I8 MENU_PAGE_MAX = 1;
+I8 menu_page = 1;
 
 typedef void(*CON_PAGE_FN)();
-CON_PAGE_FN menu_pages[];
+
+struct MENU_PAGE {
+  const char* name;
+  CON_PAGE_FN page_fn;
+};
+
+MENU_PAGE menu_pages[MENU_PAGE_MAX - MENU_PAGE_MIN + 1];
+
+void show_paging( U8 num ) {
+  char line_str[CON_MAX_WIDTH + 3]{};
+  
+  U32 cur_char = 0;
+  if( num > MENU_PAGE_MIN ) {
+    sprintf( line_str, " <%s", menu_pages[num-1].name );
+    cur_char = strlen( line_str );
+  }
+
+  char mid_str[16];
+  sprintf( mid_str, "[%d] %s", num, menu_pages[num].name );
+  I32 mid_len = strlen( mid_str );
+    
+  I32 diff = CON_MAX_WIDTH / 2 - (I32)cur_char - mid_len / 2;
+
+  memset( line_str + cur_char, ' ', diff );
+  cur_char += diff;
+
+  strcat( line_str, mid_str );
+  cur_char += mid_len;
+
+  if( num < MENU_PAGE_MAX ) {
+    char next_str[16];
+    sprintf( next_str, "%s->", menu_pages[num+1].name );
+
+    I32 next_len = strlen( next_str );
+    I32 diff = CON_MAX_WIDTH - (I32)cur_char - next_len;
+
+    memset( line_str + cur_char, ' ', diff );
+    strcat( line_str, next_str );
+  }
+
+  con_set_line(
+    CON_MAX_HEIGHT - 1,
+    line_str,
+    "",
+    con_selected_line == CON_MAX_HEIGHT - 1,
+    CONFG_MAGENTA
+  );
+  
+  con_set_line_callback(
+    CON_MAX_HEIGHT - 1,
+    []( CON_LINE* self, U8 action ) {
+    if( action == LINE_ACTION_LEFTARROW && menu_page > MENU_PAGE_MIN )
+      --menu_page;
+    if( action == LINE_ACTION_RIGHTARROW && menu_page < MENU_PAGE_MAX )
+      ++menu_page;
+
+    con_clear();
+    menu_pages[menu_page].page_fn();
+    show_paging( menu_page );
+  } );
+}
+
+void show_page_0() {
+  con_set_line_text( 0, "load config", false );
+  con_set_line_subtext( 0, "[ENTER]", false, CONFG_LIGHTBLUE );
+  con_set_line_callback( 0, []( CON_LINE* self, U8 action ) {
+    if( action == LINE_ACTION_ENTER ) {
+      settings_holder.load();
+    }
+  } );
+
+  con_set_line_text( 1, "save config", false );
+  con_set_line_subtext( 1, "[ENTER]", false, CONFG_LIGHTBLUE );
+  con_set_line_callback( 1, []( CON_LINE* self, U8 action ) {
+    if( action == LINE_ACTION_ENTER ) {
+      settings_holder.save();
+    }
+  } ); 
+}
 
 void show_page_1() {
   con_set_line_text( 0,"bhop",false );
   con_set_line_subtext(
     0,
     bhop_active? "[on]" : "[off]",
-    true,
+    con_selected_line == 0,
     bhop_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
   );
 
@@ -46,7 +124,6 @@ void show_page_1() {
       glow_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
     );
   });
-
 
   con_set_line_text( 2, "triggerbot", false);
   con_set_line_subtext(
@@ -108,17 +185,20 @@ void show_page_1() {
     if( action == LINE_ACTION_ENTER )
       csgo_dump_ifaces_to_file( csgop );
   } );
- 
 }
 
-void menu_show_ui( CSGO *p ) {
-  csgop = p;
+void menu_show_ui( PROCESS32 *p ) {
+  csgop = (CSGO*)p;
   
   con_clear();
   con_capturing_input = true;
 
+  menu_pages[0] = { "config", &show_page_0 };
+  menu_pages[1] = { "general", &show_page_1 };
+  
   show_page_1();
-
+  show_paging( 1 );
+  
   con_set_bottomline_text(
     "LOCALPLAYER: %08X | FLAGS: %08X | menu",
     p->read<U32>( localplayer_ptr ),0x0

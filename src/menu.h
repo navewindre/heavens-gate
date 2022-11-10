@@ -1,5 +1,4 @@
 #pragma once
-#include <thread>
 
 #include "process.h"
 #include "util.h"
@@ -66,4 +65,4 @@ static void csgo_dump_ifaces_to_file( CSGO* p ) {
   fclose( dump ); 
 }
 
-extern void menu_show_ui( CSGO* p );
+extern void menu_show_ui( PROCESS32* p );

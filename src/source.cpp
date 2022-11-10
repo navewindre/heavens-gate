@@ -1,5 +1,6 @@
 // by navewindre
 // github.com/navewindre
+#pragma warning( disable: 4530 )
 
 #include "csgo/hack.h"
 #include "util.h"

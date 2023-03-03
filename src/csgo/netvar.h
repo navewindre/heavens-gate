@@ -83,9 +83,11 @@ inline I32 netvar_get_entry( CSGO* csgo, const char* name, U32 table_ptr ) {
     if( !strstr( prop_name.data, name ) )
       continue;
 
+    free( props );
     return prop->offset + ret;
   }
 
+  free( props );
   return ret;
 }
 

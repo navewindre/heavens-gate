@@ -6,7 +6,6 @@
 #include "winintern.h"
 #include "typedef.h"
 #include "fnv.h"
-#include "syscall.h"
 
 struct MODULE_ENTRY {
   U64     base;
@@ -22,40 +21,7 @@ private:
   char        m_name[256]{};
 
 private:
-  U8 binary_match( U8* code, U8* pattern, U32 size ) {
-    for( U32 i = 0; i < size; ++i ) {
-      if( pattern[i] && code[i] != pattern[i] )
-        return 0;
-    }
 
-    return 1;
-  }
-
-  U8* parse_signature( const char* sig, U32* out_len ) {
-    U8* sig_bytes = (U8*)malloc( strlen( sig ) );
-
-    U32 i, byte;
-    for( i = 0, byte = 0; i < strlen( sig ); ++byte ) {
-      if( sig[i] == ' ' )
-        return 0;
-
-      if( sig[i] == '?' ) {
-        sig_bytes[byte] = 0;
-        i += 2;
-        continue;
-      }
-
-      unsigned long temp;
-      sscanf( &sig[i], "%02x", &temp );
-
-      sig_bytes[byte] = (U8)( temp & 0xff );
-      i += 3;
-    }
-
-    if( out_len )
-      *out_len = byte;
-    return sig_bytes;
-  }
   
 public:
   PROCESS32( const char* name ) {
@@ -238,7 +204,7 @@ public:
 
   U32 code_match( U32 module_base, const char* sig ) {
     U32 sig_length;
-    U8* sig_bytes = parse_signature( sig, &sig_length );
+    U8* sig_bytes = u_parse_signature( sig, &sig_length );
     if( !sig_bytes || sig_length <= 2 )
       return 0;
 
@@ -255,7 +221,7 @@ public:
       read( (U32)mbi.BaseAddress, buffer, (U32)mbi.RegionSize );
       
       for( U32 i = 0; i < mbi.RegionSize - sig_length; ++i ) {
-        if( binary_match( buffer + i, sig_bytes, sig_length ) ) {
+        if( u_binary_match( buffer + i, sig_bytes, sig_length ) ) {
           free( buffer );
           free( sig_bytes );
           return (U32)mbi.BaseAddress + i;
@@ -289,12 +255,4 @@ public:
   void read( U64 address, void* out, U32 size ) {
     nt_read_vm64( m_base, address, out, size );
   }
-};
-
-class CSGO : public PROCESS32 {
-public:
-  CSGO() : PROCESS32( "csgo.exe" ) {};
-
-  U32 client;
-  U32 engine;
 };

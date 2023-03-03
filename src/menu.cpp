@@ -1,4 +1,6 @@
 ﻿#include "menu.h"
+#include "conin.h"
+
 #include "csgo/hack.h"
 
 CSGO* csgop;
@@ -75,7 +77,7 @@ void show_page_0() {
   con_set_line_subtext( 0, "[ENTER]", false, CONFG_LIGHTBLUE );
   con_set_line_callback( 0, []( CON_LINE* self, U8 action ) {
     if( action == LINE_ACTION_ENTER ) {
-      settings_holder.load();
+      settings.load();
     }
   } );
 
@@ -83,12 +85,15 @@ void show_page_0() {
   con_set_line_subtext( 1, "[ENTER]", false, CONFG_LIGHTBLUE );
   con_set_line_callback( 1, []( CON_LINE* self, U8 action ) {
     if( action == LINE_ACTION_ENTER ) {
-      settings_holder.save();
+      settings.save();
     }
   } ); 
 }
 
 void show_page_1() {
+  static SETTING<bool>& bhop_active = *settings.find<bool>( "bhop_active"fnv );
+  static SETTING<bool>& glow_active = *settings.find<bool>( "glow_active"fnv );
+
   con_set_line_text( 0,"bhop",false );
   con_set_line_subtext(
     0,
@@ -174,6 +179,8 @@ void show_page_1() {
 }
 
 void show_page_2() {
+  static SETTING<I32>& triggerbot_key = *settings.find<I32>( "triggerbot_key"fnv );
+  
   con_set_line_text( 0, "triggerbot", false);
   con_set_line_subtext(
     0,
@@ -184,7 +191,7 @@ void show_page_2() {
 
   con_set_line_callback( 0, []( CON_LINE *,U8 action ) {
     if( action == LINE_ACTION_ENTER ) {
-      con_update_hotkey( 0, triggerbot_key );
+      con_update_hotkey( 0, triggerbot_key.v );
     }
   } );
 }

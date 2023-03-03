@@ -2,7 +2,6 @@
 // github.com/navewindre
 
 #pragma once
-#include <vector>
 #include "x86.h"
 #include "fnv.h"
 #include "asmutil.h"
@@ -90,9 +89,9 @@ inline U32 syscall_get_index( const U8* fn, U32 size, U16* out_ret_bytes = 0 ) {
   return 0;
 }
 
-inline std::vector< SYSCALL_ENTRY > syscall_dump() {
-  static std::vector< SYSCALL_ENTRY > ret;
-  static std::vector< MODULE_EXPORT > nt_exports;
+inline VECTOR< SYSCALL_ENTRY > syscall_dump() {
+  static VECTOR< SYSCALL_ENTRY > ret;
+  static VECTOR< MODULE_EXPORT > nt_exports;
 
   // ntdll can't change during runtime
   if( !ret.empty() )
@@ -124,9 +123,9 @@ inline std::vector< SYSCALL_ENTRY > syscall_dump() {
   return ret;
 }
 
-inline std::vector< SYSCALL_ENTRY > syscall_dump64() {
-  static std::vector< SYSCALL_ENTRY >   ret{};
-  static std::vector< MODULE_EXPORT64 > nt_exports{};
+inline VECTOR< SYSCALL_ENTRY > syscall_dump64() {
+  static VECTOR< SYSCALL_ENTRY >   ret{};
+  static VECTOR< MODULE_EXPORT64 > nt_exports{};
 
   if( !ret.empty() )
     return ret;
@@ -168,7 +167,7 @@ inline std::vector< SYSCALL_ENTRY > syscall_dump64() {
 }
 
 inline SYSCALL_ENTRY syscall_find_syscall( FNV1A syscall_hash ) {
-  static std::vector< SYSCALL_ENTRY > syscalls = syscall_dump();
+  static VECTOR< SYSCALL_ENTRY > syscalls = syscall_dump();
   
   for( auto& syscall : syscalls ) {
     if( syscall.hash == syscall_hash )
@@ -179,7 +178,7 @@ inline SYSCALL_ENTRY syscall_find_syscall( FNV1A syscall_hash ) {
 }
 
 inline SYSCALL_ENTRY syscall_find_syscall64( FNV1A syscall_hash ) {
-  std::vector< SYSCALL_ENTRY > syscalls = syscall_dump64();
+  VECTOR< SYSCALL_ENTRY > syscalls = syscall_dump64();
 
   for( auto& syscall : syscalls ) {
     if( syscall.hash == syscall_hash )

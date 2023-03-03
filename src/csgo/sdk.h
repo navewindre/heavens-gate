@@ -1,6 +1,7 @@
 // by navewindre
 // github.com/navewindre
 
+#pragma once
 #include "../typedef.h"
 
 struct COLOR {
@@ -41,6 +42,40 @@ struct GLOW_OBJ_MANAGER {
   U32		unk3;
   U32		unk4;
   U32		unk5;
+};
+
+struct RECV_PROP;
+struct RECV_TABLE {
+  RECV_PROP*  props;
+  I32         prop_count;
+  void*       decoder;
+  const char* table_name;
+
+  bool initialized;
+  bool in_main_list;
+};
+
+struct RECV_PROP {
+  const char* varname;
+  I32         recv_type;
+  I32         flags;
+  I32         buffer_size;
+  bool        inside_array;
+  void*       extra_data;
+
+  RECV_PROP*  array_prop;
+  void*       array_length_proxy;
+
+  void*       proxy_fn;
+  void*       dt_proxy_fn;
+
+  RECV_TABLE* table;
+  I32         offset;
+
+  I32 element_stride;
+  I32 elements;
+
+  const char* parent_array_name;
 };
 
 class CSGO_CLIENT_CLASS {

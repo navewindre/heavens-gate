@@ -46,3 +46,10 @@ union REG64 {
 constexpr U32 x86_encode_mov_imm32( U32 reg ) { return ( 0xb8 + reg ); }
 constexpr U32 x86_encode_push_reg( U32 reg ) { return 0x50 | ( reg & 7 ); }
 constexpr U32 x86_encoded_pop_reg( U32 reg ) { return 0x58 | ( reg & 7 ); }
+
+enum X86Instructions_t : U8 {
+  RET_NEAR = 0xc3,
+  RET_FAR = 0xcb,
+  RET_NEAR_IMM16 = 0xc2,
+  RET_FAR_IMM16 = 0xca,
+};

@@ -4,12 +4,13 @@
 #include "util.h"
 #include "vars.h"
 
-#include "csgo/interface.h"
+#include "syscall.h"
+#include "csgo/csgo.h"
 
 static void syscall_dump_to_file() {
-  static std::vector< SYSCALL_ENTRY > syscalls = syscall_dump();
-  static std::vector< SYSCALL_ENTRY > syscalls64 = syscall_dump64();
-  static std::vector< MODULE_EXPORT64 > nt64_exports = module_get_exports64( nt_get_address64() );
+  static VECTOR< SYSCALL_ENTRY > syscalls = syscall_dump();
+  static VECTOR< SYSCALL_ENTRY > syscalls64 = syscall_dump64();
+  static VECTOR< MODULE_EXPORT64 > nt64_exports = module_get_exports64( nt_get_address64() );
   char* syscall_str = (char*)malloc( 100000 );
 
   memset( syscall_str, 0, 100000 );

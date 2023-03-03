@@ -5,6 +5,9 @@
 #include "util.h"
 #include "typedef.h"
 
+#define log( ... ) con_print( CONFG_WHITE, __VA_ARGS__ )
+#define logc( x, ... ) con_print( x, __VA_ARGS__ )
+
 constexpr U8 CON_WIDTH = 52;
 constexpr U8 CON_HEIGHT = 16;
 constexpr U8 CON_MAX_WIDTH  = CON_WIDTH - 6;

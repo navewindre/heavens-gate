@@ -69,3 +69,54 @@ inline U8 u_set_debug_privilege() {
 
   return 1;
 }
+
+inline U8 u_binary_match( U8* code, U8* pattern, U32 size ) {
+  for( U32 i = 0; i < size; ++i ) {
+    if( pattern[i] && code[i] != pattern[i] )
+      return 0;
+  }
+
+  return 1;
+}
+
+inline U8* u_parse_signature( const char* sig, U32* out_len ) {
+  U32 i, byte, len = strlen( sig );
+  U8* sig_bytes = (U8*)malloc( len );
+
+  for( i = 0, byte = 0; i < len; ++byte ) {
+    if( sig[i] == ' ' )
+      return 0;
+
+    if( sig[i] == '?' ) {
+      sig_bytes[byte] = 0;
+      for( U32 i2 = i; i2 < len; ++i2 ) {
+        if( sig[i2 + 1] == ' ' ) {
+          i = i2 + 2;
+          break;
+        }
+      }
+        
+      continue;
+    }
+
+    unsigned long temp;
+    sscanf( &sig[i], "%02x", &temp );
+
+    sig_bytes[byte] = (U8)( temp & 0xff );
+    i += 3;
+  }
+
+  if( out_len )
+    *out_len = byte;
+  return sig_bytes;
+}
+
+template <typename t>
+inline t* u_vector_search( VECTOR<t> v, bool( *func)( t t1 ) ) {
+  for( auto& it : v ) {
+    if( func( it ) )
+      return &it;
+  }
+
+  return 0;
+}

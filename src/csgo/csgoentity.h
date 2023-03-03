@@ -1,7 +1,8 @@
 ﻿#pragma once
-#include "sdk.h"
 #include "../util.h"
-#include "../process.h"
+
+#include "sdk.h"
+#include "csgo.h"
 
 #define OFFSET( name, offset, type )                     \
   type name() { return get<type>( offset ); }            \

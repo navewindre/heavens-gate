@@ -84,6 +84,7 @@
       <CallingConvention>FastCall</CallingConvention>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <NoWarn>4530</NoWarn>
+      <DisableSpecificWarnings>4530</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -108,6 +109,7 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <NoWarn>4530</NoWarn>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <DisableSpecificWarnings>4530</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -137,6 +139,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <DisableSpecificWarnings>4530</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -161,11 +164,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asmutil.h" />
+    <ClInclude Include="csgo\csgo.h" />
     <ClInclude Include="csgo\csgoentity.h" />
     <ClInclude Include="csgo\csgoplayer.h" />
     <ClInclude Include="csgo\hack.h" />
     <ClInclude Include="csgo\interface.h" />
+    <ClInclude Include="csgo\netvar.h" />
     <ClInclude Include="csgo\sdk.h" />
+    <ClInclude Include="disasm.h" />
     <ClInclude Include="fnv.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="setting.h" />

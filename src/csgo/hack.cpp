@@ -1,9 +1,11 @@
 #include "hack.h"
 
-SETTING_HOLDER settings_holder;
-SETTING<I32>  triggerbot_key{ &settings_holder, "triggerbot_key", 0x6 };
-SETTING<bool> bhop_active{ &settings_holder, "bhop_active", true };
-SETTING<bool> glow_active{ &settings_holder, "glow_active", false };
+#include "netvar.h"
+
+SETTING_HOLDER settings;
+SETTING<I32>  triggerbot_key{ &settings, "triggerbot_key", 0x6 };
+SETTING<bool> bhop_active{ &settings, "bhop_active", true };
+SETTING<bool> glow_active{ &settings, "glow_active", false };
 
 F64  perf_ipt = .0;
 F64  perf_tps = .0;
@@ -83,7 +85,7 @@ void hack_run_glow( CSGO* p ) {
         COLOR{ 1.0f, 0.17f, 0.37f, 0.7f } : 
         COLOR{ 0.17f, 0.67f, 0.8f, 0.8f };
     }
-    else if( cl.index >= CWeaponAug && cl.index <= CWeaponXM1014 ) {
+    else if( cl.index >= CWeaponAug && cl.index <= CWeaponXM1014 && !o.rwo ) {
       color = { 0.8f, 0.8f, 0.8f, 0.6f };
     }
     else continue;
@@ -120,6 +122,17 @@ CSGO* hack_init() {
   p.client = p.get_module32( "client.dll"fnv );
   p.engine = p.get_module32( "engine.dll"fnv );
 
+  con_set_bottomline_text( "dumping interfaces..." );
+
+  p.dump_interfaces();
+
+  // preload netvar tables
+  netvar_get_table( &p, " " );
+  con_set_line_text( 0, "found interfaces: " );
+  con_set_line_subtext( 0, u_num_to_string_hex( p.interfaces.size() ), false, CONFG_CYAN );
+
+  Sleep( 200 );
+  
   con_set_bottomline_text( "searching for signatures..." );
   
   hack_print_offset( 0, "localplayer", localplayer_ptr );

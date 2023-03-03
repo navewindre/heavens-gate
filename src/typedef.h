@@ -2,6 +2,11 @@
 // github.com/navewindre
 
 #pragma once
+#ifdef __cplusplus
+#include <vector>
+template<typename t>
+using VECTOR = std::vector<t>;
+#endif
 
 typedef char      I8;
 typedef short     I16;
@@ -17,5 +22,6 @@ typedef float  F32;
 typedef double F64;
 
 typedef unsigned long PTR;
+
 
 #define assert( x ) if( !x ) con_set_bottomline_text( CONFG_RED + CONBG_LIGHTGRAY, "ASSERTION FAILED: %s() (line: %d)", __func__, __LINE__ )

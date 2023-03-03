@@ -10,7 +10,11 @@ class SETTING_NODE {
 public:
   virtual void load() {};
   virtual void save() {};
+  virtual FNV1A get_hash() { return {}; };
 };
+
+template <typename t>
+class SETTING;
 
 class SETTING_HOLDER : SETTING_NODE {
 public:
@@ -29,8 +33,18 @@ public:
       it->load();
   }
 
+  template <typename t>
+  SETTING<t>* find( FNV1A hash ) {
+    for( auto& it : nodes ) {
+      if( it->get_hash() == hash )
+        return (SETTING<t>*)(it);
+    }
+
+    return 0;
+  }
+
 private:
-  std::vector<SETTING_NODE*> nodes;
+  VECTOR<SETTING_NODE*> nodes;
 };
 
 template < typename t >
@@ -39,9 +53,10 @@ public:
   SETTING( SETTING_HOLDER* owner, const char* name, t _default = t{} ) :
     m_owner( owner ),
     m_name( name ),
-    v( _default )
+    v( _default ),
+    m_hash( fnv1a( name ) )
   {
-    owner->register_( this );  
+    owner->register_( this );
   };
 
   __forceinline SETTING( const SETTING<t>& other ) : v( other.v ) {}
@@ -50,6 +65,8 @@ public:
   void save() override { setting_save( m_name, &v, sizeof( t ) ); }
   void load() override { setting_load( m_name, &v, sizeof( t ) ); }
 
+  FNV1A get_hash() override { return m_hash; }
+
   operator t&() { return v; }
   t* operator&() { return &v; }
   
@@ -57,4 +74,5 @@ public:
 private:
   SETTING_HOLDER* m_owner;
   const char*     m_name;
+  FNV1A           m_hash;
 };

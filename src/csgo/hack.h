@@ -4,25 +4,17 @@
 
 #include <time.h>
 
-#include "../conin.h"
-#include "../process.h"
 #include "../conout.h"
-#include "../util.h"
 #include "../vars.h"
 
-#include "../mathutil.h"
-#include "../menu.h"
 #include "../setting.h"
 
+#include "csgo.h"
 #include "csgoentity.h"
 #include "csgoplayer.h"
 
 
-extern SETTING_HOLDER settings_holder;
-
-extern SETTING<I32>  triggerbot_key;
-extern SETTING<bool> bhop_active;
-extern SETTING<bool> glow_active;
+extern SETTING_HOLDER settings;
 
 extern F64  perf_ipt;
 extern F64  perf_tps;

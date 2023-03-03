@@ -1,6 +1,4 @@
 ﻿#pragma once
-#include <vector>
-
 #include "../process.h"
 #include "../util.h"
 #include "../typedef.h"
@@ -47,6 +45,7 @@ inline U32 iface_follow_createinterface( PROCESS32* proc, U32 exp ) {
   U32 jmp = exp + 0x4;
   U32 rel = proc->read<U32>( jmp + 0x1 );
 
+  
   return jmp + rel + 0x5;
 }
 
@@ -54,12 +53,12 @@ inline U32 iface_get_list( PROCESS32* proc, U32 exp ) {
   return proc->read<U32>( proc->read<U32>( exp + 0x6 ) );
 }
 
-static std::vector< IFACE_ENTRY > srceng_get_interfaces( PROCESS32* proc ) {
-  std::vector< MODULE_EXPORT64 > exports;
-  std::vector< MODULE_ENTRY >    modules;
-  std::vector< IFACE_ENTRY >     ifaces;
-  MODULE_EXPORT64*               create_interface_export;
-  U32                            create_interface;
+static VECTOR< IFACE_ENTRY > srceng_get_interfaces( PROCESS32* proc ) {
+  VECTOR< MODULE_EXPORT64 > exports;
+  VECTOR< MODULE_ENTRY >    modules;
+  VECTOR< IFACE_ENTRY >     ifaces;
+  MODULE_EXPORT64*          create_interface_export;
+  U32                       create_interface;
 
   modules = proc->dump_modules32();
   for( auto& module : modules ) {
@@ -82,6 +81,7 @@ static std::vector< IFACE_ENTRY > srceng_get_interfaces( PROCESS32* proc ) {
     if( !create_interface || !iface_is_createinterface( proc, create_interface ) )
       continue;
 
+    
     U32 list_ptr  = iface_get_list( proc, create_interface );
     if( !list_ptr )
       continue;
@@ -92,12 +92,12 @@ static std::vector< IFACE_ENTRY > srceng_get_interfaces( PROCESS32* proc ) {
       memset( name.data, 0, 64 );
       proc->read( (U32)reg.name, name.data, 64 );
       name.data[63] = 0;
-      
+
       IFACE_ENTRY e;
       e.module = (U32)module.base;
       e.module_name = module.name;
       e.name = name;
-      e.ptr = proc->read<U32>( (U32)reg.create_fn + 0x1 );
+      e.ptr = proc->read<U32>( (U32)(reg.create_fn) + 0x1 );
     
       ifaces.push_back( e );
 

@@ -91,7 +91,7 @@ void setting_load( const char* name, const void* dst, U32 size ) {
 
   memset( buffer, 0, size * 2 + 1 );
 
-  FILE* f = fopen( get_path( ), "r+" );
+  FILE* f = fopen( get_path(), "r+" );
   if( !f )
     return;
 

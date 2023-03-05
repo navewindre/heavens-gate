@@ -7,6 +7,8 @@
 #include "typedef.h"
 #include "fnv.h"
 
+#include "conout.h"
+
 struct MODULE_ENTRY {
   U64     base;
   U64     size;
@@ -241,8 +243,8 @@ public:
     nt_write_vm64( m_base, address, (void*)&value, sizeof( t ) );
   }
 
-  void write( U64 address, void* buffer, U32 size ) {
-    nt_write_vm64( m_base, address, buffer, size );
+  void write( U64 address, const void* buffer, U32 size ) {
+    nt_write_vm64( m_base, address, (void*)buffer, size );
   }
 
   template < typename t > t read( U64 address ) {
@@ -254,5 +256,19 @@ public:
 
   void read( U64 address, void* out, U32 size ) {
     nt_read_vm64( m_base, address, out, size );
+  }
+
+  U64 allocate(
+    U64 size,
+    ULONG protect = PAGE_EXECUTE_READWRITE,
+    ULONG alloc_type = MEM_COMMIT | MEM_RESERVE
+  ) {
+    U64 out{};
+    NTSTATUS64 st = nt_allocate_vm64( m_base, &out, 0, &size, alloc_type, protect );
+    if( st != STATUS_SUCCESS ) {
+      return 0;
+    }
+
+    return out;
   }
 };

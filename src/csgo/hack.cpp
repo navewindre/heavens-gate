@@ -1,11 +1,13 @@
 #include "hack.h"
 
 #include "netvar.h"
+#include "../disasm.h"
 
 SETTING_HOLDER settings;
 SETTING<I32>  triggerbot_key{ &settings, "triggerbot_key", 0x6 };
 SETTING<bool> bhop_active{ &settings, "bhop_active", true };
 SETTING<bool> glow_active{ &settings, "glow_active", false };
+SETTING<bool> clantag_active{ &settings, "clantag_active", false };
 
 F64  perf_ipt = .0;
 F64  perf_tps = .0;
@@ -14,6 +16,7 @@ U32 localplayer_ptr;
 U32 jump_ptr;
 U32 attack_ptr;
 U32 glow_ptr;
+U32 clantag_ptr;
 
 void hack_run_bhop( CSGO* p ) {
   if( !bhop_active || !( GetAsyncKeyState( VK_SPACE ) & 0x8000 ) ) 
@@ -103,6 +106,74 @@ void hack_run_glow( CSGO* p ) {
   free( glow_objects );
 }
 
+void __stdcall setclantag_shellcode( void* string ) {
+  U32 clantag_offset = 0xDADADADA;
+  
+  using set_clantag = int( __fastcall* )( const char*, const char* );
+  ( (set_clantag)(clantag_offset) )( (const char*)string, (const char*)string );
+  
+  DISASM_SIG();
+}
+
+void hack_setclantag( CSGO* csgo, const char* str ) {
+  static U64 func_address = 0;
+  static U64 string_address = 0;
+  
+  if( !func_address || !string_address ) {
+    DISASM_INFO disasm = disasm_function( &setclantag_shellcode );
+
+    U8* func_copy = (U8*)malloc( disasm.func_length );
+    memcpy( func_copy, disasm.func_start, disasm.func_length );
+    
+    for( U32 i = 0; i < disasm.func_length; ++i ) {
+      if( *(U32*)( func_copy + i ) == 0xdadadada ) {
+        *(U32*)( func_copy + i ) = clantag_ptr;
+      }
+    }
+
+    func_address = csgo->allocate( disasm.func_length );
+    string_address = csgo->allocate( 16, PAGE_READWRITE );
+    csgo->write( func_address, func_copy, disasm.func_length );
+
+    free( func_copy );
+  }
+  
+  U32 len = strlen( str );
+  assert( (len < 16) );
+  
+  csgo->write( string_address, str, len );
+  u_thread_create(
+    csgo->get_base(),
+    (LPTHREAD_START_ROUTINE)(U32)func_address,
+    (void*)(U32)string_address
+  );
+}
+
+void hack_run_clantag( CSGO* csgo ) {
+  if( !clantag_active )
+    return;
+  
+  const char8_t* clantag[] = {
+    u8"\u30FB\u2605*\u309C\u22C6",
+    u8"\u309C\u30FB\u2605\u22C6*",
+    u8"\u22C6\u309C\u30FB*\u2605",
+    u8"*\u22C6\u309C\u2605\u30FB",
+    u8"\u2605*\u22C6\u30FB\u309C"
+  };
+
+  static I32 counter = 0;
+  static U64 last_tick = u_tick() + (rand() % 1000 - 500);
+  U64 tick = u_tick();
+
+  
+  if( tick - last_tick > 1000 ) {
+    counter = (++counter) % 5;
+
+    hack_setclantag( csgo, (const char*)( clantag[counter] ) );
+    last_tick = tick;
+  }
+}
+
 inline void hack_print_offset( U8 line, const char* name, ULONG offset ) {
   con_set_line_text( line, name );
   U8 color = offset > 0x1000 ? CONFG_WHITE : CONFG_RED;
@@ -148,6 +219,8 @@ CSGO* hack_init() {
   hack_print_offset( 2, "attack", attack_ptr ); 
   glow_ptr        = p.read<U32>( p.code_match( p.client, GLOWSTRUCT_SIG ) + 1 ) + 4;
   hack_print_offset( 3, "glow", glow_ptr );
+  clantag_ptr     = p.code_match( p.engine, CLANTAG_SIG );
+  hack_print_offset( 4, "SetClanTag", clantag_ptr );
 
   CSGOENTITY::csgop = &p;
   

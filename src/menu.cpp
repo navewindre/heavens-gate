@@ -93,7 +93,8 @@ void show_page_0() {
 void show_page_1() {
   static SETTING<bool>& bhop_active = *settings.find<bool>( "bhop_active"fnv );
   static SETTING<bool>& glow_active = *settings.find<bool>( "glow_active"fnv );
-
+  static SETTING<bool>& clantag_active = *settings.find<bool>( "clantag_active"fnv );
+  
   con_set_line_text( 0,"bhop",false );
   con_set_line_subtext(
     0,
@@ -130,41 +131,25 @@ void show_page_1() {
     );
   });
 
-  con_set_line_text( 3, "display color pallette" );
+  con_set_line_text( 2, "clantag changer" );
   con_set_line_subtext(
-    3,
-    key_titles[0x0D],
+    2,
+    clantag_active? "[on]" : "[off]",
     false,
-    CONFG_LIGHTBLUE
+    glow_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
   );
 
-  con_set_line_callback( 3, []( CON_LINE *,U8 action ) {
-    static bool toggle;
-    if( action == LINE_ACTION_ENTER ) {
-      if( !toggle )
-        con_print_colors();
-      else {
-        con_refresh();
-      }
-
-      toggle = !toggle;
-    }
+  con_set_line_callback( 2, []( CON_LINE* self, U8 action ) {
+    clantag_active = !clantag_active;
+    con_set_line_subtext(
+      2,
+      clantag_active? "[on]" : "[off]",
+      self->active,
+      clantag_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+    ); 
   } );
-
-  con_set_line_text( 5, "dump syscalls to syscall_arch.dump", false );
-  con_set_line_subtext(
-    5,
-    key_titles[VK_RETURN],
-    false,
-    CONFG_LIGHTBLUE
-  );
-
-  con_set_line_callback( 5, []( CON_LINE*, U8 action ) {
-    if( action == LINE_ACTION_ENTER )
-      syscall_dump_to_file();
-  } );
-
-  con_set_line_text( 6, "dump interfaces to interfaces.dump", false );
+  
+  con_set_line_text( 6, "dump syscalls to syscall_arch.dump", false );
   con_set_line_subtext(
     6,
     key_titles[VK_RETURN],
@@ -173,6 +158,19 @@ void show_page_1() {
   );
 
   con_set_line_callback( 6, []( CON_LINE*, U8 action ) {
+    if( action == LINE_ACTION_ENTER )
+      syscall_dump_to_file();
+  } );
+
+  con_set_line_text( 7, "dump interfaces to interfaces.dump", false );
+  con_set_line_subtext(
+    7,
+    key_titles[VK_RETURN],
+    false,
+    CONFG_LIGHTBLUE
+  );
+
+  con_set_line_callback( 7, []( CON_LINE*, U8 action ) {
     if( action == LINE_ACTION_ENTER )
       csgo_dump_ifaces_to_file( csgop );
   } );

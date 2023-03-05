@@ -24,4 +24,4 @@ typedef double F64;
 typedef unsigned long PTR;
 
 
-#define assert( x ) if( !x ) con_set_bottomline_text( CONFG_RED + CONBG_LIGHTGRAY, "ASSERTION FAILED: %s() (line: %d)", __func__, __LINE__ )
+#define assert( x ) if( !x ) con_set_assert( "ASSERTION FAILED: %s() (line: %d)", __func__, __LINE__ )

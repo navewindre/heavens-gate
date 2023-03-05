@@ -7,6 +7,7 @@
 #include "typedef.h"
 
 extern ULONG u_thread_create( LPTHREAD_START_ROUTINE routine, void* param = 0 );
+extern ULONG u_thread_create( HANDLE proc, LPTHREAD_START_ROUTINE routine, void* param = 0 );
 
 template < U32 size >
 struct STR {
@@ -119,4 +120,8 @@ inline t* u_vector_search( VECTOR<t> v, bool( *func)( t t1 ) ) {
   }
 
   return 0;
+}
+
+inline U64 u_tick() {
+  return GetTickCount64();
 }

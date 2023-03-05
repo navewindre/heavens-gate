@@ -45,7 +45,6 @@ inline U32 iface_follow_createinterface( PROCESS32* proc, U32 exp ) {
   U32 jmp = exp + 0x4;
   U32 rel = proc->read<U32>( jmp + 0x1 );
 
-  
   return jmp + rel + 0x5;
 }
 
@@ -81,7 +80,6 @@ static VECTOR< IFACE_ENTRY > srceng_get_interfaces( PROCESS32* proc ) {
     if( !create_interface || !iface_is_createinterface( proc, create_interface ) )
       continue;
 
-    
     U32 list_ptr  = iface_get_list( proc, create_interface );
     if( !list_ptr )
       continue;

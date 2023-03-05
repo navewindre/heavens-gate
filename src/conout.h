@@ -5,8 +5,8 @@
 #include "util.h"
 #include "typedef.h"
 
-#define log( ... ) con_print( CONFG_WHITE, __VA_ARGS__ )
-#define logc( x, ... ) con_print( x, __VA_ARGS__ )
+#define clog( ... ) con_print( CONFG_WHITE, __VA_ARGS__ )
+#define clogc( x, ... ) con_print( x, __VA_ARGS__ )
 
 constexpr U8 CON_WIDTH = 52;
 constexpr U8 CON_HEIGHT = 16;
@@ -115,6 +115,8 @@ extern void con_clear();
 extern void con_refresh();
 extern void con_print( U8 color, const char* text, ... );
 extern void con_print_line( U8 line );
+extern void con_set_assert( const char* text, ... );
+
 
 inline void con_print_colors() {
   for( I16 i = 0; i <= 255; ++i )

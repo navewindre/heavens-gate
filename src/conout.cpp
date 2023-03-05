@@ -9,9 +9,11 @@
 #include "util.h"
 #include "conout.h"
 
+
 CRITICAL_SECTION con_mutex;
 CON_LINE* con_lines = (CON_LINE*)malloc( sizeof( CON_LINE ) * ( CON_MAX_HEIGHT + 1 ) );
 U8        con_selected_line = 0;
+bool      con_assert = false;
 
 void con_init() {
   AllocConsole();
@@ -205,6 +207,8 @@ void con_clear() {
 
 void con_set_bottomline_text( U8 color, const char* text, ... ) {
   EnterCriticalSection( &con_mutex );
+  if( con_assert )
+    return;
   
   con_setpos( 0, CON_HEIGHT );
   setc( color );
@@ -229,6 +233,9 @@ void con_set_bottomline_text( U8 color, const char* text, ... ) {
 }
 
 void con_set_bottomline_text( const char* text, ... ) {
+  if( con_assert )
+    return;
+  
   char str_buffer[256]{};
   va_list args;
   va_start( args, text );
@@ -237,6 +244,20 @@ void con_set_bottomline_text( const char* text, ... ) {
 
   con_set_bottomline_text( CONFG_BLACK + CONBG_LIGHTGRAY, str_buffer );
 }
+
+void con_set_assert( const char* text, ... ) {
+  char str_buffer[256]{};
+  va_list args;
+  va_start( args, text );
+  vsprintf_s( str_buffer, 256, text, args );
+  va_end( args );
+
+  con_set_bottomline_text( CONFG_RED + CONBG_LIGHTGRAY, str_buffer );
+  EnterCriticalSection( &con_mutex );
+  con_assert = true;
+  LeaveCriticalSection( &con_mutex );
+}
+
 
 void con_clear_bottomline_text() {
   EnterCriticalSection( &con_mutex );

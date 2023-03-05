@@ -15,7 +15,7 @@ NTSTATUS64 nt_create_thread64(
   U32 stack_commit,
   U32 stack_reserve
 ) {
-  static SYSCALL_ENTRY nt_create_thread = syscall_find_syscall( "NtCreateThreadEx"fnv );
+  static SYSCALL_ENTRY nt_create_thread = syscall_find_syscall64( "NtCreateThreadEx"fnv );
 
   REG64 start = (U64)start_routine;
   REG64 access64 = (U64)mask;
@@ -167,7 +167,7 @@ NTSTATUS64 nt_allocate_vm64(
   U64* region_size,
   ULONG allocation_type,
   ULONG protect) {
-  static SYSCALL_ENTRY nt_allocate_vm = syscall_find_syscall( "NtAllocateVirtualMemory"fnv );
+  static SYSCALL_ENTRY nt_allocate_vm = syscall_find_syscall64( "NtAllocateVirtualMemory"fnv );
 
   REG64 handle64 = (U64)handle;
   REG64 allocated_address64 = (U64)allocated_address;

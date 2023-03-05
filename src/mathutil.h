@@ -4,9 +4,6 @@
 #pragma once
 #include "typedef.h"
 
-inline U64 u_tick() {
-  return GetTickCount64();
-}
 
 template < typename t >
 inline t u_clamp( t in, const t& min, const t& max ) {

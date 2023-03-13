@@ -106,13 +106,26 @@ void hack_run_glow( CSGO* p ) {
   free( glow_objects );
 }
 
-void __stdcall setclantag_shellcode( void* string ) {
-  U32 clantag_offset = 0xDADADADA;
+__declspec( naked ) void __stdcall setclantag_shellcode( void* string ) {
+  __asm {
+    push ebp
+    mov ebp, esp
+    sub esp, __LOCAL_SIZE
+  }
+  
+  U32 clantag_offset;
+  clantag_offset = 0xDADADADA;
   
   using set_clantag = int( __fastcall* )( const char*, const char* );
   ( (set_clantag)(clantag_offset) )( (const char*)string, (const char*)string );
   
   DISASM_SIG();
+
+  __asm {
+    mov esp, ebp
+    pop ebp
+    ret
+  }
 }
 
 void hack_setclantag( CSGO* csgo, const char* str ) {
@@ -128,6 +141,7 @@ void hack_setclantag( CSGO* csgo, const char* str ) {
     for( U32 i = 0; i < disasm.func_length; ++i ) {
       if( *(U32*)( func_copy + i ) == 0xdadadada ) {
         *(U32*)( func_copy + i ) = clantag_ptr;
+        break;
       }
     }
 
@@ -137,7 +151,8 @@ void hack_setclantag( CSGO* csgo, const char* str ) {
 
     free( func_copy );
   }
-  
+
+
   U32 len = strlen( str );
   assert( (len < 16) );
   

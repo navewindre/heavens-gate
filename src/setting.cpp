@@ -66,7 +66,7 @@ size_t getline(char **lineptr, size_t *n, FILE *stream) {
 }
 
 void setting_save( const char* name, const void* src, U32 size ) {
-  char*     buffer = (char*)alloca( size * 2 + 1 );
+  char*     buffer = (char*)malloc( size * 2 + 1 );
   const U8* data = (const U8*)( src );
 
   memset( buffer, 0, size * 2 + 1 );
@@ -77,23 +77,24 @@ void setting_save( const char* name, const void* src, U32 size ) {
 
   FILE* f = fopen( get_path(), "a" );
   if( !f )
-    return;
+    return free( buffer );
 
   fprintf( f, "%s = %s\n", name, buffer );
   fflush( f );
 
+  free( buffer );
   fclose( f );
 }
 
 void setting_load( const char* name, const void* dst, U32 size ) {
-  char* buffer = (char*)alloca( size * 2 + 1 );
+  char* buffer = (char*)malloc( size * 2 + 1 );
   U8*   data = (U8*)( dst );
 
   memset( buffer, 0, size * 2 + 1 );
 
   FILE* f = fopen( get_path(), "r+" );
   if( !f )
-    return;
+    return free( buffer );
 
   char  read_name[64]{};
   char* line = nullptr;
@@ -117,11 +118,13 @@ void setting_load( const char* name, const void* dst, U32 size ) {
   fclose( f );
 
   if( !buffer[0] )
-    return;
+    return free( buffer );
 
   for( U32 i = 0; i < size; ++i ) {
     unsigned temp;
     sscanf( &buffer[2 * i], "%02x", &temp );
     data[i] = temp;
   }
+
+  free( buffer );
 }

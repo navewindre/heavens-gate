@@ -21,6 +21,16 @@ struct DISASM_INFO {
 
 const I32 DISASM_SIG_LENGTH = 18;
 
+U8* disasm_get_wrapper_target( void* funptr ) {
+  U8* func = (U8*)funptr;
+
+  if( func[0] != 0xe9 || func[5] != 0xe9 )
+    return 0;
+
+  U32 jmp_rel = *(U32*)( &func[1] );
+  return (U8*)( funptr ) + jmp_rel + 5;
+}
+
 U8* disasm_find_sig_end( void* funptr, int* out_checknr = 0 ) {
   static const char* signature_str = "eb 10 66 b8 39 1b b8 ? ? ? ? b8 ? ? ? ? cc cc";
   U8 *ret = 0, *ptr = (U8*)funptr;
@@ -77,8 +87,13 @@ DISASM_INFO disasm_function( void* func ) {
   DISASM_INFO ret{};
   I32 checknr;
   U8* signature = disasm_find_sig_end( func, &checknr );
-  if( !signature )
-    return ret;
+  if( !signature ) {
+    U8* wrapper_target = disasm_get_wrapper_target( func );
+    if( !wrapper_target )
+      return ret;
+
+    return disasm_function( wrapper_target );
+  }
 
   U8* ret_byte = disasm_find_ret_instruction( func );
   if( !ret_byte )

@@ -1,0 +1,7 @@
+<Project>
+
+<PropertyGroup>
+<IntDir>..\$(Configuration)\</IntDir>
+</PropertyGroup>
+
+</Project>

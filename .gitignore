@@ -37,6 +37,7 @@
 Release/*
 Debug/*
 X64/*
+intermediate/*
 src/Debug/*
 src/Release/*
 src/X64/*

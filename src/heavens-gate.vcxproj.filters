@@ -10,6 +10,10 @@
     </ClCompile>
     <ClCompile Include="ntutil.cpp" />
     <ClCompile Include="util.cpp" />
+    <ClCompile Include="csgo\csgoentity.cpp" />
+    <ClCompile Include="csgo\hack.cpp" />
+    <ClCompile Include="menu.cpp" />
+    <ClCompile Include="setting.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="typedef.h" />
@@ -18,9 +22,6 @@
     </ClInclude>
     <ClInclude Include="conout.h">
       <Filter>Console</Filter>
-    </ClInclude>
-    <ClInclude Include="sdk.h">
-      <Filter>Hack</Filter>
     </ClInclude>
     <ClInclude Include="asmutil.h">
       <Filter>Util</Filter>
@@ -33,9 +34,6 @@
     </ClInclude>
     <ClInclude Include="syscall.h">
       <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="hack.h">
-      <Filter>Hack</Filter>
     </ClInclude>
     <ClInclude Include="ntutil.h">
       <Filter>Util</Filter>
@@ -55,6 +53,16 @@
     <ClInclude Include="fnv.h" />
     <ClInclude Include="x86.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="csgo\csgo.h" />
+    <ClInclude Include="csgo\csgoentity.h" />
+    <ClInclude Include="csgo\csgoplayer.h" />
+    <ClInclude Include="csgo\hack.h" />
+    <ClInclude Include="csgo\interface.h" />
+    <ClInclude Include="csgo\materialsystem.h" />
+    <ClInclude Include="csgo\netvar.h" />
+    <ClInclude Include="csgo\sdk.h" />
+    <ClInclude Include="disasm.h" />
+    <ClInclude Include="setting.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Console">
@@ -74,7 +82,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="heavens-gate.rc" />
+    <ResourceCompile Include="..\resource\heavens-gate.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\resource\heavens-gate-ico.ico" />

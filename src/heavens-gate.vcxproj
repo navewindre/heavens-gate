@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TrackFileAccess>false</TrackFileAccess>
+  </PropertyGroup>
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -58,12 +61,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)\bin\</OutDir>
+    <IntDir>..\intermediate\$(Configuration)\</IntDir>
+    <TargetName>heavens-gate.exe</TargetName>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='stripped|Win32'">
     <OutDir>$(SolutionDir)\bin\</OutDir>
+    <IntDir>..\intermediate\$(Configuration)\</IntDir>
+    <TargetName>heavens-gate.exe</TargetName>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)\bin\</OutDir>
+    <IntDir>..\intermediate\$(Configuration)\</IntDir>
+    <TargetName>heavens-gate.exe</TargetName>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -85,6 +97,12 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalOptions>/ENTRY:"mainCRTStartup" %(AdditionalOptions) /IGNORE:4530</AdditionalOptions>
     </Link>
+    <ResourceCompile>
+      <ResourceOutputFileName>$(IntDir)%(Filename).res</ResourceOutputFileName>
+    </ResourceCompile>
+    <PostBuildEvent>
+      <Command>../cleanup.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -118,6 +136,9 @@
       <AdditionalOptions>/ENTRY:"mainCRTStartup" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>false</DataExecutionPrevention>
     </Link>
+    <PostBuildEvent>
+      <Command>../cleanup.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='stripped|Win32'">
     <ClCompile>
@@ -154,6 +175,9 @@
       <AdditionalOptions>/ENTRY:"mainCRTStartup" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>false</DataExecutionPrevention>
     </Link>
+    <PostBuildEvent>
+      <Command>../cleanup.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="conout.cpp" />
@@ -205,6 +229,9 @@
       <UseResponseFile>false</UseResponseFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LinkCompiled>true</LinkCompiled>
+      <ResourceOutputFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\intermediate\%(Filename).res</ResourceOutputFileName>
+      <ResourceOutputFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\intermediate\%(Filename).res</ResourceOutputFileName>
+      <ResourceOutputFileName Condition="'$(Configuration)|$(Platform)'=='stripped|Win32'">..\intermediate\%(Filename).res</ResourceOutputFileName>
     </ResourceCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

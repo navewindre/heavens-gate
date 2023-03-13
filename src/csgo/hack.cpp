@@ -79,7 +79,7 @@ void hack_run_glow( CSGO* p ) {
     COLOR             color;
 
     /* clientclass outdated af*/
-    if( cl.index == 0x28 ) {
+    if( cl.index == CBasePlayer ) {
       I32 team = e.m_iTeam();
       if( team == local_team || (team != 2 && team != 3) )
         continue;
@@ -165,7 +165,7 @@ void hack_setclantag( CSGO* csgo, const char* str ) {
 }
 
 void hack_run_clantag( CSGO* csgo ) {
-  if( !clantag_active )
+  if( !clantag_active || !localplayer_ptr )
     return;
   
   const char8_t* clantag[] = {
@@ -214,6 +214,7 @@ CSGO* hack_init() {
 
   // preload netvar tables
   netvar_get_table( &p, " " );
+
   con_set_line_text( 0, "found interfaces: " );
   con_set_line_subtext( 0, u_num_to_string_hex( p.interfaces.size() ), false, CONFG_CYAN );
 

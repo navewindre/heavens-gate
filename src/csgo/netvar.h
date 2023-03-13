@@ -9,20 +9,20 @@ struct NETVAR_TABLE {
   STR<64> name;
 };
 
-inline U32 netvar_get_list( CSGO* csgo ) {
-  IFACE_ENTRY* chl = u_vector_search<IFACE_ENTRY>(
+inline U32 netvar_get_classes( CSGO* csgo ) {
+  IFACE_ENTRY chl = u_vector_search<IFACE_ENTRY>(
     csgo->interfaces,
-    []( IFACE_ENTRY in ) {
-      return !!strstr( in.name, "VClient0" );
+    []( IFACE_ENTRY* in ) {
+      return !!strstr( in->name, "VClient0" );
     }
   );
-  
-  if( !chl )
+
+  if( !chl.ptr )
     return 0;
 
-  U32 chl_vtable = csgo->read<U32>( chl->ptr );
+  U32 chl_vtable = csgo->read<U32>( chl.ptr );
   U32 vtable_8 = chl_vtable + 8 * sizeof(U32);
-
+  
   U32 get_allclasses = csgo->read<U32>( vtable_8 );
   U32 class_ptr = csgo->read<U32>( csgo->read<U32>( get_allclasses + 0x1 ) );
 
@@ -49,7 +49,7 @@ inline VECTOR<NETVAR_TABLE> netvar_get_tables( CSGO* csgo, U32 list ) {
 }
 
 inline U32 netvar_get_table( CSGO* csgo, const char* table_name ) {
-  static U32 list_ptr = netvar_get_list( csgo );
+  static U32 list_ptr = netvar_get_classes( csgo );
   static VECTOR<NETVAR_TABLE> tables = netvar_get_tables( csgo, list_ptr );
 
   for( auto& it : tables ) {
@@ -83,8 +83,8 @@ inline I32 netvar_get_entry( CSGO* csgo, const char* name, U32 table_ptr ) {
     if( !strstr( prop_name.data, name ) )
       continue;
 
-    free( props );
-    return prop->offset + ret;
+    ret += prop->offset;
+    break;
   }
 
   free( props );
@@ -100,4 +100,39 @@ inline I32 netvar_find( CSGO* csgo, const char* table_name, const char* prop ) {
   
   ret = netvar_get_entry( csgo, prop, table );
   return ret;
+}
+
+static void csgo_dump_classes( CSGO* csgo ) {
+  U32 allclasses = netvar_get_classes( csgo );
+  
+  if( !allclasses )
+    return;
+
+  char* dump = (char*)malloc( 99999 );
+  memset( dump, 0, 99999 );
+  strcat( dump, "enum CSGOClientClass_t {\n" );
+  
+  U32 ptr = allclasses;
+  STR<64> net_name;
+  do {
+    CSGO_CLIENT_CLASS cclass = csgo->read<CSGO_CLIENT_CLASS>( ptr );
+    csgo->read( (U64)cclass.network_name, net_name.data, 64 );
+
+    strcat( dump, "  " );
+    strcat( dump, net_name );
+    strcat( dump, " = " );
+    strcat( dump, "0x" );
+    strcat( dump, u_num_to_string_hex( cclass.index ) );
+    strcat( dump, ",\n" );
+    
+    ptr = (U32)cclass.next;
+  } while( ptr && ptr != allclasses ); 
+
+  strcat( dump, "};" );
+  
+  FILE* f = fopen( "./classes.dump", "w" );
+  fwrite( dump, strlen( dump ), 1, f );
+  fclose( f );
+  
+  free( dump );
 }

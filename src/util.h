@@ -113,13 +113,13 @@ inline U8* u_parse_signature( const char* sig, U32* out_len ) {
 }
 
 template <typename t>
-inline t* u_vector_search( VECTOR<t> v, bool( *func)( t t1 ) ) {
+inline t u_vector_search( VECTOR<t> v, bool( *func)( t* t1 ) ) {
   for( auto& it : v ) {
-    if( func( it ) )
-      return &it;
+    if( func( &it ) )
+      return it;
   }
 
-  return 0;
+  return {};
 }
 
 inline U64 u_tick() {

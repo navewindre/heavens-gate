@@ -2,6 +2,7 @@
 #include "conin.h"
 
 #include "csgo/hack.h"
+#include "csgo/netvar.h"
 
 CSGO* csgop;
 
@@ -148,6 +149,20 @@ void show_page_1() {
       clantag_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
     ); 
   } );
+
+  con_set_line_text( 5, "dump all classes to classes.dump", false );
+  con_set_line_subtext(
+    5,
+    key_titles[VK_RETURN],
+    false,
+    CONFG_LIGHTBLUE
+  );
+
+  con_set_line_callback( 5, []( CON_LINE*, U8 action ) {
+   if( action == LINE_ACTION_ENTER )
+     csgo_dump_classes( csgop );
+ } ); 
+
   
   con_set_line_text( 6, "dump syscalls to syscall_arch.dump", false );
   con_set_line_subtext(

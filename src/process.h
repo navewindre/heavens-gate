@@ -237,6 +237,32 @@ public:
     return 0;
   }
 
+  U32 code_match( U32 module_base, U8* bytes, U32 length ) {
+    MEMORY_BASIC_INFORMATION64 mbi{0};
+    U32 module_size = get_module_size32( module_base );
+    
+    for( U64 off = 0; off < module_size; off += mbi.RegionSize ) {
+      nt_query_vm64( m_base, module_base + off, MemoryRegionInfo, &mbi, sizeof( mbi ) );
+      
+      if( mbi.State == MEM_FREE )
+        continue;
+      
+      U8* buffer = (U8*)malloc( (U32)mbi.RegionSize );
+      read( (U32)mbi.BaseAddress, buffer, (U32)mbi.RegionSize );
+      
+      for( U32 i = 0; i < mbi.RegionSize - length; ++i ) {
+        if( u_binary_match( buffer + i, bytes, length ) ) {
+          free( buffer );
+          return (U32)mbi.BaseAddress + i;
+        }
+      }
+      
+      free( buffer );
+    }
+
+    return 0;
+  }
+
   I32 get_id() { return m_id; }
 
   template < typename t > void write( U64 address, const t& value ) {

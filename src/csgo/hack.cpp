@@ -196,6 +196,100 @@ inline void hack_print_offset( U8 line, const char* name, ULONG offset ) {
   con_set_line_subtext( line, u_num_to_string_hex( offset ), false, color );
 }
 
+inline U32 get_clantag_offset( CSGO* csgo ) {
+  const char* const clantag_str = "Current clan ID for name decoration";
+  U32 str = csgo->code_match( csgo->engine, (U8*)clantag_str, strlen( clantag_str ) );
+  U8 str_bytes[] = {
+    0x68,
+    *( (U8*)(&str) + 0 ),
+    *( (U8*)(&str) + 1 ),
+    *( (U8*)(&str) + 2 ),
+    *( (U8*)(&str) + 3 )
+  };
+
+  U32 push_str = csgo->code_match( csgo->engine, str_bytes, sizeof( str_bytes ) );
+  U8 func_buffer[100];
+  csgo->read( push_str - 100, func_buffer, sizeof( func_buffer ) );
+
+  U32 cvar_func = 0;
+  for( U32 i = 0; i < 100; ++i ) {
+    if( func_buffer[i] == 0x68 && func_buffer[i + 5] == 0x51 ) {
+      cvar_func = *(U32*)( func_buffer + i + 1 );
+      break;
+    }
+  }
+
+  U8 cvar_func_buffer[256];
+  csgo->read( cvar_func, cvar_func_buffer, sizeof( cvar_func_buffer ) );
+
+  for( U32 i = 0; i < 256; ++i ) {
+    if( cvar_func_buffer[i] == 0xe8
+     && cvar_func_buffer[i + 5] == 0x5f
+     && cvar_func_buffer[i + 6] == 0x5e
+     && cvar_func_buffer[i + 7] == 0x5b ) {
+      return *(U32*)( cvar_func_buffer + i + 1 ) + cvar_func + i + 5;
+    }
+  }
+  
+  return 0;
+}
+
+inline U32 get_jump_offset( CSGO* csgo ) {
+  IFACE_ENTRY chl = u_vector_search<IFACE_ENTRY>( csgo->interfaces, []( IFACE_ENTRY* e ) {
+    return !!strstr( e->name, "VClient0" );
+  } );
+
+  if( !chl.ptr )
+    return 0;
+
+  U32 chl_vtable = csgo->read<U32>( chl.ptr );
+  U32 chl_vtable_16 = csgo->read<U32>( chl_vtable + 16 * sizeof(U32) );
+  U32 input = csgo->read<U32>( chl_vtable_16 + 1 );
+  
+  U32 input_vtable = csgo->read<U32>( input );
+  U32 vtable_3 = csgo->read<U32>( input_vtable + 2 * sizeof(U32) );
+
+  U8 func_buffer[256];
+  csgo->read( vtable_3, func_buffer, sizeof( func_buffer ) );
+
+  U8 pattern[] = { 0x83, 0xca, 0x02, 0x24, 0x03 };
+  for( U32 i = 0; i < sizeof( func_buffer ) - sizeof( pattern ); ++i ) {
+    if( u_binary_match( func_buffer + i, pattern, sizeof( pattern ) ) ) {
+      return *(U32*)( func_buffer + i - 8 );
+    }
+  }
+
+  return 0;
+}
+
+inline U32 get_attack_offset( CSGO* csgo ) {
+  IFACE_ENTRY chl = u_vector_search<IFACE_ENTRY>( csgo->interfaces, []( IFACE_ENTRY* e ) {
+   return !!strstr( e->name, "VClient0" );
+ } );
+
+  if( !chl.ptr )
+    return 0;
+
+  U32 chl_vtable = csgo->read<U32>( chl.ptr );
+  U32 chl_vtable_16 = csgo->read<U32>( chl_vtable + 16 * sizeof(U32) );
+  U32 input = csgo->read<U32>( chl_vtable_16 + 1 );
+  
+  U32 input_vtable = csgo->read<U32>( input );
+  U32 vtable_3 = csgo->read<U32>( input_vtable + 2 * sizeof(U32) );
+
+  U8 func_buffer[256];
+  csgo->read( vtable_3, func_buffer, sizeof( func_buffer ) );
+
+  U8 pattern[] = { 0x83, 0xca, 0x01, 0x24, 0x03 };
+  for( U32 i = 0; i < sizeof( func_buffer ) - sizeof( pattern ); ++i ) {
+    if( u_binary_match( func_buffer + i, pattern, sizeof( pattern ) ) ) {
+      return *(U32*)( func_buffer + i - 8 );
+    }
+  }
+
+  return 0;
+}
+
 CSGO* hack_init() {
   static CSGO p;
   con_clear();
@@ -220,7 +314,7 @@ CSGO* hack_init() {
 
   Sleep( 200 );
   
-  con_set_bottomline_text( "searching for signatures..." );
+  con_set_bottomline_text( "searching for offsets..." );
   
   hack_print_offset( 0, "localplayer", localplayer_ptr );
   hack_print_offset( 1, "jump", jump_ptr );
@@ -229,15 +323,15 @@ CSGO* hack_init() {
   
   localplayer_ptr = p.read<U32>( p.code_match( p.client, LOCALPLAYER_SIG ) + 3 ) + 4;
   hack_print_offset( 0, "localplayer", localplayer_ptr );
-  jump_ptr        = p.read<U32>( p.code_match( p.client, JUMP_SIG ) + 2 );
+  jump_ptr        = get_jump_offset( &p );
   hack_print_offset( 1, "jump", jump_ptr );
-  attack_ptr      = p.read<U32>( p.code_match( p.client, FORCEATTACK_SIG ) + 2 );
+  attack_ptr      = get_attack_offset( &p );
   hack_print_offset( 2, "attack", attack_ptr ); 
   glow_ptr        = p.read<U32>( p.code_match( p.client, GLOWSTRUCT_SIG ) + 1 ) + 4;
   hack_print_offset( 3, "glow", glow_ptr );
-  clantag_ptr     = p.code_match( p.engine, CLANTAG_SIG );
+  clantag_ptr = get_clantag_offset( &p );
   hack_print_offset( 4, "SetClanTag", clantag_ptr );
-
+  
   CSGOENTITY::csgop = &p;
   
   return &p;

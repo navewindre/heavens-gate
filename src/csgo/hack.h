@@ -20,10 +20,7 @@ extern F64  perf_ipt;
 extern F64  perf_tps;
 
 const char* const LOCALPLAYER_SIG = "8D 34 85 ? ? ? ? 89 15 ? ? ? ? 8B 41 08 8B 48 04 83 F9 FF";
-const char* const FORCEATTACK_SIG = "89 0D ? ? ? ? 8B 0D ? ? ? ? 8B F2 8B C1 83 CE 04";
 const char* const GLOWSTRUCT_SIG  = "A1 ? ? ? ? A8 01 75 4B";
-const char* const JUMP_SIG        = "8B 0D ? ? ? ? 8B D6 8B C1 83 CA 02";
-const char* const CLANTAG_SIG     = "53 56 57 8B DA 8B F9 FF";
 
 extern U32 localplayer_ptr;
 

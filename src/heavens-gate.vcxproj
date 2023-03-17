@@ -202,6 +202,7 @@
     <ClInclude Include="csgo\sdk.h" />
     <ClInclude Include="disasm.h" />
     <ClInclude Include="fnv.h" />
+    <ClInclude Include="mouse.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="setting.h" />
     <ClInclude Include="vars.h" />

@@ -63,6 +63,8 @@
     <ClInclude Include="csgo\sdk.h" />
     <ClInclude Include="disasm.h" />
     <ClInclude Include="setting.h" />
+    <ClInclude Include="mouse.h" />
+    <ClInclude Include="vec3.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Console">

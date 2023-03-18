@@ -17,6 +17,7 @@ U32 jump_ptr;
 U32 attack_ptr;
 U32 glow_ptr;
 U32 clantag_ptr;
+U32 clientstate_ptr;
 
 void hack_run_bhop( CSGO* p ) {
   if( !bhop_active || !( GetAsyncKeyState( VK_SPACE ) & 0x8000 ) ) 
@@ -293,12 +294,36 @@ inline U32 get_attack_offset( CSGO* csgo ) {
   return 0;
 }
 
+inline U32 get_clientstate_offset( CSGO* csgo ) {
+  IFACE_ENTRY engine = u_vector_search<IFACE_ENTRY>( csgo->interfaces, []( IFACE_ENTRY* e ) {
+    return !!strstr( e->name, "VEngineClient0" );
+  } );
+
+  if( !engine.ptr )
+    return 0;
+
+  U32 engine_vtable = csgo->read<U32>( engine.ptr );
+  U32 engine_vtable_18 = csgo->read<U32>( engine_vtable + 18 * sizeof(U32) );
+
+  U8 func_buffer[256];
+  csgo->read( engine_vtable_18, func_buffer, sizeof( func_buffer ) );
+
+  for( U32 i = 0; i < 256; ++i ) {
+    if( func_buffer[i] == 0x8b
+     && func_buffer[i+1] == 0x34
+     && func_buffer[i+2] == 0x85 ) {
+      return csgo->read<U32>( *(U32*)( func_buffer + i + 3 ) );
+    }
+  }
+
+  return 0;
+}
+
 #define progress( x ) con_set_line( CON_MAX_HEIGHT - 1, con_progressbar( x ), "" )
 
 CSGO* hack_init() {
   static CSGO p;
   con_clear();
-
   
   while( !p.open() ) {
     progress( 0.f );
@@ -349,10 +374,14 @@ CSGO* hack_init() {
   glow_ptr        = p.read<U32>( p.code_match( p.client, GLOWSTRUCT_SIG ) + 1 ) + 4;
   hack_print_offset( 4, "glow", glow_ptr ); progress( .8f );
   clantag_ptr = get_clantag_offset( &p );
-  hack_print_offset( 5, "SetClanTag", clantag_ptr ); progress( .9f );
-
+  hack_print_offset( 5, "SetClanTag", clantag_ptr ); progress( .85f );
+  clientstate_ptr = get_clientstate_offset( &p );
+  hack_print_offset( 6, "clientstate", clientstate_ptr ); progress( .9f );
+  
   progress( 1.f );
   CSGOENTITY::csgop = &p;
   
   return &p;
 }
+
+#undef progress

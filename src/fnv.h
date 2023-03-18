@@ -1,5 +1,7 @@
-﻿#pragma once
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
 
+#pragma once
 #include "typedef.h"
 
 typedef U32 FNV1A;

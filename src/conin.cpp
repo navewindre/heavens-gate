@@ -1,5 +1,5 @@
-// by navewindre
-// github.com/navewindre
+//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
 
 #include <windows.h>
 #include "conin.h"

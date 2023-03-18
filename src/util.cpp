@@ -1,4 +1,7 @@
-﻿#include "util.h"
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
+#include "util.h"
 #include "syscall.h"
 
 ULONG u_thread_create( LPTHREAD_START_ROUTINE routine, void* param ) {

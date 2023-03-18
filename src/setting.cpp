@@ -1,3 +1,6 @@
+//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
 #include "setting.h"
 
 const char* get_path() {

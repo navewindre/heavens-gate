@@ -1,8 +1,10 @@
-﻿#include "menu.h"
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
+#include "menu.h"
 #include "conin.h"
 
 #include "csgo/hack.h"
-#include "csgo/netvar.h"
 
 CSGO* csgop;
 

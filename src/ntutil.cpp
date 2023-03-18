@@ -1,5 +1,7 @@
-﻿#include "ntutil.h"
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
 
+#include "ntutil.h"
 #include "syscall.h"
 
 // it's big nigga season

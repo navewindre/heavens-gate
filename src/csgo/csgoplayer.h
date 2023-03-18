@@ -1,3 +1,6 @@
+//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
 #pragma once
 #include "csgoentity.h"
 

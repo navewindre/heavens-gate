@@ -1,4 +1,7 @@
-﻿#include <windows.h>
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
+#include <windows.h>
 #include <winternl.h>
 #pragma comment( lib, "ntdll.lib" )
 

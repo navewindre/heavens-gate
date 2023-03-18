@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
+#pragma once
 #include "typedef.h"
 
 enum X86Regs_t : U8 {

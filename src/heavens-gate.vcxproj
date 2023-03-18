@@ -210,7 +210,6 @@
     <ClInclude Include="mouse.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="setting.h" />
-    <ClInclude Include="vars.h" />
     <ClInclude Include="conout.h" />
     <ClInclude Include="conin.h" />
     <ClInclude Include="mathutil.h" />

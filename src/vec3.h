@@ -1,4 +1,7 @@
-﻿#include "typedef.h"
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
+#include "typedef.h"
 
 struct VEC3 {
   F32 x, y, z;

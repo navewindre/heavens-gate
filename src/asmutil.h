@@ -1,4 +1,7 @@
-﻿#define db( x ) __asm _emit x
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
+#define db( x ) __asm _emit x
 
 #define heavens_gate_enter() \
 db( 0x6a ) db( 0x33 ) /*push 0x33*/ \

@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
+#pragma once
 #include "../util.h"
 
 #include "sdk.h"

@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿//|_   _   _.     _  ._  |_   _.  _ |
+//| | (/_ (_| \/ (/_ | | | | (_| (_ |<
+
+#pragma once
 #pragma warning( disable: 4102 )
 
 #include "util.h"

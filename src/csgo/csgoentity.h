@@ -2,17 +2,29 @@
 #include "../util.h"
 
 #include "sdk.h"
-#include "csgo.h"
+#include "netvar.h"
 
-#define OFFSET( name, offset, type )                     \
-  type name() { return get<type>( offset ); }            \
-  void name( type v ) { return set<type>( offset, v ); }
+#define OFFSET( name, prop, table, type, off )                \
+  type name() { \
+    static U32 offset = netvar_find( csgop, table, prop ) + off; \
+    return get<type>( offset ); } \
+  void name( type v ) { \
+    static U32 offset = netvar_find( csgop, table, #name ) + off; \
+    return set<type>( offset, v ); } \
+
+#define NETVAR( name, table, type )                \
+  type name() { \
+    static U32 offset = netvar_find( csgop, table, #name ); \
+    return get<type>( offset ); } \
+  void name( type v ) { \
+    static U32 offset = netvar_find( csgop, table, #name ); \
+    return set<type>( offset, v ); } \
+
 
 class CSGOENTITY {
 public:
   static CSGO* csgop;
   
-
 public:
   CSGOENTITY( U32 ptr ) : base( ptr ) {};
   CSGOENTITY( CSGOENTITY&& other ) : base( other.base ) {}
@@ -33,8 +45,9 @@ public:
     return csgop->read<CSGO_CLIENT_CLASS>( clientclass );
   }
   
-  OFFSET( m_fFlags, 0x104, I32 )
-
+  NETVAR( m_fFlags, "DT_CSPlayer", I32 );
+  OFFSET( m_iCrosshairID, "m_bHasDefuser", "DT_CSPlayer", I32, 92 );
+  
 public:
   U32 base;
 };

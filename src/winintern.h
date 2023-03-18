@@ -50,6 +50,11 @@ struct _CLIENT_ID_T
     T UniqueThread;
 };
 
+struct OBJECT_HANDLE_FLAG_INFORMATION {
+  BOOLEAN inherit;
+  BOOLEAN protect;
+};
+
 template <class T>
 struct _TEB_T_
 {

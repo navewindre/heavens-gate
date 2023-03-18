@@ -166,6 +166,14 @@ extern NTSTATUS64 nt_delay_execution64(
   LARGE_INTEGER* delay_interval
 );
 
+extern NTSTATUS64 nt_query_object64(
+  HANDLE handle,
+  I32 info_class,
+  void* object_information,
+  ULONG object_information_length,
+  ULONG* return_length
+);
+
 inline std::vector< MODULE_EXPORT64 > module_get_exports( U32 module_base, HANDLE proc = (HANDLE)-1 ) {
   std::vector< MODULE_EXPORT64 > ret;
   IMAGE_DOS_HEADER               dos_header;

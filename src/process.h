@@ -19,7 +19,7 @@ struct MODULE_ENTRY {
 class PROCESS32 {
 private:
   HANDLE      m_base{};
-  I32         m_id{};
+  U64         m_id{};
   char        m_name[256]{};
 
 private:
@@ -34,6 +34,8 @@ public:
   HANDLE get_base() { return m_base; }
 
   I8 open() {
+    m_id = 0;
+    
     const U32 PINFO_ALLOC_SIZE = 0x400000;
     _SYSTEM_PROCESS_INFORMATION64* pinfo;
     ULONG received_bytes;
@@ -57,9 +59,9 @@ public:
 
     do {
       if( pinfo->ImageName.Buffer ) {
-        STR< 128 > pname = u_widebyte_to_ansi( (wchar_t*)(U32)pinfo->ImageName.Buffer );
+        STR<128> pname = u_widebyte_to_ansi( (wchar_t*)(U32)pinfo->ImageName.Buffer );
         if( !strcmp( pname, m_name ) ) {
-          m_id = (I32)pinfo->UniqueProcessId;
+          m_id = pinfo->UniqueProcessId;
           break;
         }
       }
@@ -86,6 +88,23 @@ public:
     return status == STATUS_SUCCESS;
   }
 
+  U8 valid() {
+    PROCESS_BASIC_INFORMATION64 info;
+    
+    // 4 = ObjectHandleFlagInformation
+    NTSTATUS64 status = nt_query_information_process64(
+      m_base, ProcessBasicInformation,
+      &info,
+      sizeof(info),
+      0
+    );
+
+    if( status != STATUS_SUCCESS )
+      return 0;
+
+    return info.ExitStatus != 0;
+  }
+  
   U32 get_module_size32( U64 module_base ) {
    IMAGE_NT_HEADERS nt_headers;
    IMAGE_DOS_HEADER dos_header;
@@ -204,44 +223,25 @@ public:
     return 0;
   }
 
-  U32 code_match( U32 module_base, const char* sig ) {
+  U32 code_match( U32 module_base, const char* sig, U32 start = 0 ) {
     U32 sig_length;
     U8* sig_bytes = u_parse_signature( sig, &sig_length );
     if( !sig_bytes || sig_length <= 2 )
       return 0;
 
-    MEMORY_BASIC_INFORMATION64 mbi{0};
-    U32 module_size = get_module_size32( module_base );
+    U32 ret = code_match( module_base, sig_bytes, sig_length, start );
     
-    for( U64 off = 0; off < module_size; off += mbi.RegionSize ) {
-      nt_query_vm64( m_base, module_base + off, MemoryRegionInfo, &mbi, sizeof( mbi ) );
-      
-      if( mbi.State == MEM_FREE )
-        continue;
-      
-      U8* buffer = (U8*)malloc( (U32)mbi.RegionSize );
-      read( (U32)mbi.BaseAddress, buffer, (U32)mbi.RegionSize );
-      
-      for( U32 i = 0; i < mbi.RegionSize - sig_length; ++i ) {
-        if( u_binary_match( buffer + i, sig_bytes, sig_length ) ) {
-          free( buffer );
-          free( sig_bytes );
-          return (U32)mbi.BaseAddress + i;
-        }
-      }
-      
-      free( buffer );
-    }
-
     free( sig_bytes );
-    return 0;
+    return ret;
   }
 
-  U32 code_match( U32 module_base, U8* bytes, U32 length ) {
+  U32 code_match( U32 module_base, U8* bytes, U32 length, U32 start = 0 ) {
     MEMORY_BASIC_INFORMATION64 mbi{0};
     U32 module_size = get_module_size32( module_base );
+    if( start < module_base )
+      start = module_base;
     
-    for( U64 off = 0; off < module_size; off += mbi.RegionSize ) {
+    for( U64 off = start - module_base; off < module_size; off += mbi.RegionSize ) {
       nt_query_vm64( m_base, module_base + off, MemoryRegionInfo, &mbi, sizeof( mbi ) );
       
       if( mbi.State == MEM_FREE )
@@ -263,7 +263,7 @@ public:
     return 0;
   }
 
-  I32 get_id() { return m_id; }
+  U64 get_id() { return m_id; }
 
   template < typename t > void write( U64 address, const t& value ) {
     nt_write_vm64( m_base, address, (void*)&value, sizeof( t ) );

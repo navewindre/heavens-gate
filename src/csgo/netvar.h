@@ -110,7 +110,7 @@ static void csgo_dump_classes( CSGO* csgo ) {
 
   char* dump = (char*)malloc( 99999 );
   memset( dump, 0, 99999 );
-  strcat( dump, "enum CSGOClientClass_t {\n" );
+  strcat( dump, "enum CSGO_CLIENT_CLASS {\n" );
   
   U32 ptr = allclasses;
   STR<64> net_name;

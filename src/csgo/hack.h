@@ -30,7 +30,7 @@ extern void hack_run_glow( CSGO* p );
 extern void hack_run_clantag( CSGO* p );
 extern CSGO* hack_init();
 
-static void hack_run( PROCESS32* p ) {
+static bool hack_run( PROCESS32* p ) {
   static U32 last_tick;
   
   struct timespec time;
@@ -56,6 +56,7 @@ static void hack_run( PROCESS32* p ) {
     local.m_fFlags(),
     perf_tps
   );
-  
+
   last_tick = tick;
+  return csgo->valid();
 }

@@ -62,19 +62,19 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)\bin\</OutDir>
     <IntDir>..\intermediate\$(Configuration)\</IntDir>
-    <TargetName>heavens-gate.exe</TargetName>
+    <TargetName>heavens-gate</TargetName>
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='stripped|Win32'">
     <OutDir>$(SolutionDir)\bin\</OutDir>
     <IntDir>..\intermediate\$(Configuration)\</IntDir>
-    <TargetName>heavens-gate.exe</TargetName>
+    <TargetName>heavens-gate</TargetName>
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)\bin\</OutDir>
     <IntDir>..\intermediate\$(Configuration)\</IntDir>
-    <TargetName>heavens-gate.exe</TargetName>
+    <TargetName>heavens-gate</TargetName>
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -215,6 +215,7 @@
     <ClInclude Include="syscall.h" />
     <ClInclude Include="typedef.h" />
     <ClInclude Include="util.h" />
+    <ClInclude Include="vec3.h" />
     <ClInclude Include="winintern.h" />
     <ClInclude Include="x86.h" />
   </ItemGroup>

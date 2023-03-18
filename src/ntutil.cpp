@@ -1,4 +1,5 @@
 ﻿#include "ntutil.h"
+
 #include "syscall.h"
 
 // it's big nigga season
@@ -249,6 +250,32 @@ NTSTATUS64 nt_delay_execution64(
   NTSTATUS64 status = syscall_execute( nt_delay_execution.idx,
     alterable64,
     delay_interval64
+  );
+
+  return status;
+}
+
+NTSTATUS64 nt_query_object64(
+  HANDLE handle,
+  I32 info_class,
+  void* object_information,
+  ULONG object_information_length,
+  ULONG* return_length
+) {
+  static SYSCALL_ENTRY nt_query_object = syscall_find_syscall64( "NtQueryObject"fnv );
+
+  REG64 handle64 = (U64)handle;
+  REG64 info_class64 = (U64)info_class;
+  REG64 object_info64 = (U64)object_information;
+  REG64 object_info_length64 = (U64)object_information_length;
+  REG64 return_length64 = (U64)return_length;
+
+  NTSTATUS64 status = syscall_execute( nt_query_object.idx,
+    handle64,
+    info_class64,
+    object_info64,
+    object_info_length64,
+    return_length64
   );
 
   return status;

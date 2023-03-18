@@ -41,6 +41,14 @@ STR< 32 > u_num_to_string_hex( t num ) {
   return ret;
 }
 
+template < typename t >
+STR< 32 > u_num_to_string_dec( t num ) {
+  STR< 32 > ret;
+
+  sprintf( ret.data, "%lld", (I64)num );
+  return ret;
+}
+
 template < U32 size = 128 >
 STR< size > u_widebyte_to_ansi( const wchar_t* str ) {
   STR< size > ret;

@@ -2,16 +2,16 @@
 // github.com/navewindre
 
 #pragma once
-#include "../typedef.h"
+#include "../vec3.h"
 
 struct COLOR {
   COLOR()  = default;
-  COLOR( float r1, float g1, float b1, float a1 ) : r( r1 ), g( g1 ), b( b1 ), a( a1 ) {}
+  COLOR( F32 r1, F32 g1, F32 b1, F32 a1 ) : r( r1 ), g( g1 ), b( b1 ), a( a1 ) {}
   
-  float r;
-  float g;
-  float b;
-  float a;
+  F32 r;
+  F32 g;
+  F32 b;
+  F32 a;
 };
 
 struct GLOW_OBJECT {
@@ -439,3 +439,80 @@ private:
     float N0000038A; //0x011C
     char pad_0120[160]; //0x0120
 }; //Size: 0x01C0
+
+class CSGO_NETCHANNEL {
+  
+};
+
+struct CSGO_EVENT_INFO {
+  I16 class_id;
+  F32 fire_delay;
+  const void* send_table;
+  CSGO_CLIENT_CLASS* client_class;
+  void* data;
+  I32 packed_bits;
+  I32 flags;
+private:
+  U8 pad[16];
+};
+
+class CSGO_CLIENTSTATE {
+  char pad[156];
+public:
+  CSGO_NETCHANNEL* netchannel;
+  I32 challenge;
+private:
+  U8 pad1[4];
+public:
+  F64 connect_time;
+  I32 retry_number;
+private:
+  U8 pad2[84];
+public:
+  I32 signon_state;
+private:
+  U8 pad3[4];
+public:
+  F64 next_cmd_time;
+  I32 server_count;
+  I32 current_sequence;
+private:
+  U8 pad4[8];
+public:
+  float clock_offsets[16];
+  I32 cur_clock_offset;
+  I32 server_tick;
+  I32 client_tick;
+  I32 delta_tick;
+private:
+  U32 pad5;
+public:
+  char level_name[260];
+  char level_name_short[40];
+private:
+  U8 pad7[212];
+public:
+  I32 maxclients;
+private:
+  U8 pad8[18836];
+public:
+  I32 old_tickcount;
+  F32 tick_remainder;
+  F32 frame_time;
+  I32 last_outgoing_command;
+  I32 choked_commands;
+  I32 last_command_ack;
+  I32 last_server_tick;
+  I32 command_ack;
+  I32 sound_sequence;
+  I32 last_progress_percent;
+  bool is_hltv;
+private:
+  U8 pad9[75];
+public:
+  VEC3 viewangles;
+private:
+  U8 pad10[204];
+public:
+  CSGO_EVENT_INFO* events;
+};

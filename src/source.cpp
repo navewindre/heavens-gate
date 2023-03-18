@@ -5,21 +5,31 @@
 #include "conin.h"
 #include "menu.h"
 
-I32 __cdecl main() {
+bool run() {
   con_init();
-
-  u_set_debug_privilege();
-
   PROCESS32* p = hack_init();
 
-  u_thread_create( &con_hook_handler );
-  u_thread_create( &con_handler );
-  
   Sleep( 1000 );
   settings.load();
   menu_show_ui( p );
-  
+
   for( ;; ) {
-    hack_run( p ); 
+    if( !hack_run( p ) ) {
+      nt_close64( p->get_base() );
+      Sleep( 5000 );
+      break;
+    }
   }
+
+  return false;
+}
+  
+I32 __cdecl main() {
+  u_set_debug_privilege();
+  u_thread_create( &con_hook_handler );
+  u_thread_create( &con_handler );
+
+  for( ; !run(); );
+
+  return 0;
 }

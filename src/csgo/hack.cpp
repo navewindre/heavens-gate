@@ -44,7 +44,7 @@ void hack_run_trigger( CSGO* p ) {
   assert( !!attack_ptr );
 
   CSGOPLAYER player = p->read<U32>( localplayer_ptr );
-  I32 crosshairid   = player.m_iCrosshairId();
+  I32 crosshairid   = player.m_iCrosshairID();
   if( crosshairid > 0 && crosshairid < 65 )
     p->write< I32 >( attack_ptr, 6 );
 }
@@ -199,6 +199,9 @@ inline void hack_print_offset( U8 line, const char* name, ULONG offset ) {
 inline U32 get_clantag_offset( CSGO* csgo ) {
   const char* const clantag_str = "Current clan ID for name decoration";
   U32 str = csgo->code_match( csgo->engine, (U8*)clantag_str, strlen( clantag_str ) );
+  while( csgo->read<U8>( str - 1 ) != 0 )
+    str = csgo->code_match( csgo->engine, (U8*)clantag_str, strlen( clantag_str ), str + 1 );
+  
   U8 str_bytes[] = {
     0x68,
     *( (U8*)(&str) + 0 ),
@@ -293,44 +296,48 @@ inline U32 get_attack_offset( CSGO* csgo ) {
 CSGO* hack_init() {
   static CSGO p;
   con_clear();
-  
+
   while( !p.open() ) {
     con_set_bottomline_text( "waiting for process..." );
-    Sleep( 100 );
+    Sleep( 2000 );
   }
-  
-  p.client = p.get_module32( "client.dll"fnv );
-  p.engine = p.get_module32( "engine.dll"fnv );
 
+  do {
+    p.client = p.get_module32( "client.dll"fnv );
+    p.engine = p.get_module32( "engine.dll"fnv );
+    if( p.client && p.engine )
+      break;
+
+    con_set_bottomline_text( "waiting for modules..." );
+    Sleep( 2000 );
+  } while( true );
+  
   con_set_bottomline_text( "dumping interfaces..." );
 
-  p.dump_interfaces();
-
+  do {
+    p.dump_interfaces();
+    if( p.interfaces.size() > 1 )
+      break;
+  } while( true );
+  
   // preload netvar tables
   netvar_get_table( &p, " " );
 
-  con_set_line_text( 0, "found interfaces: " );
-  con_set_line_subtext( 0, u_num_to_string_hex( p.interfaces.size() ), false, CONFG_CYAN );
-
-  Sleep( 200 );
-  
   con_set_bottomline_text( "searching for offsets..." );
-  
-  hack_print_offset( 0, "localplayer", localplayer_ptr );
-  hack_print_offset( 1, "jump", jump_ptr );
-  hack_print_offset( 2, "attack", attack_ptr );
-  hack_print_offset( 3, "glow", glow_ptr );
+
+  con_set_line_text( 0, "found interfaces: " );
+  con_set_line_subtext( 0, u_num_to_string_dec( p.interfaces.size() ), false, CONFG_CYAN );
   
   localplayer_ptr = p.read<U32>( p.code_match( p.client, LOCALPLAYER_SIG ) + 3 ) + 4;
-  hack_print_offset( 0, "localplayer", localplayer_ptr );
+  hack_print_offset( 1, "localplayer", localplayer_ptr );
   jump_ptr        = get_jump_offset( &p );
-  hack_print_offset( 1, "jump", jump_ptr );
+  hack_print_offset( 2, "jump", jump_ptr );
   attack_ptr      = get_attack_offset( &p );
-  hack_print_offset( 2, "attack", attack_ptr ); 
+  hack_print_offset( 3, "attack", attack_ptr ); 
   glow_ptr        = p.read<U32>( p.code_match( p.client, GLOWSTRUCT_SIG ) + 1 ) + 4;
-  hack_print_offset( 3, "glow", glow_ptr );
+  hack_print_offset( 4, "glow", glow_ptr );
   clantag_ptr = get_clantag_offset( &p );
-  hack_print_offset( 4, "SetClanTag", clantag_ptr );
+  hack_print_offset( 5, "SetClanTag", clantag_ptr );
   
   CSGOENTITY::csgop = &p;
   

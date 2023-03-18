@@ -293,52 +293,65 @@ inline U32 get_attack_offset( CSGO* csgo ) {
   return 0;
 }
 
+#define progress( x ) con_set_line( CON_MAX_HEIGHT - 1, con_progressbar( x ), "" )
+
 CSGO* hack_init() {
   static CSGO p;
   con_clear();
 
+  
   while( !p.open() ) {
+    progress( 0.f );
     con_set_bottomline_text( "waiting for process..." );
-    Sleep( 2000 );
+    Sleep( 500 );
   }
 
+  progress( .2f );
   do {
     p.client = p.get_module32( "client.dll"fnv );
     p.engine = p.get_module32( "engine.dll"fnv );
     if( p.client && p.engine )
       break;
 
+    progress( .3f );
     con_set_bottomline_text( "waiting for modules..." );
-    Sleep( 2000 );
+    Sleep( 500 );
   } while( true );
-  
+
+  progress( .4f );
   con_set_bottomline_text( "dumping interfaces..." );
 
   do {
     p.dump_interfaces();
     if( p.interfaces.size() > 1 )
       break;
+
+    progress( .4f );
+    Sleep( 500 );
   } while( true );
-  
+
+  progress( .5f );
   // preload netvar tables
   netvar_get_table( &p, " " );
-
+  progress( .6f );
+  
   con_set_bottomline_text( "searching for offsets..." );
 
   con_set_line_text( 0, "found interfaces: " );
   con_set_line_subtext( 0, u_num_to_string_dec( p.interfaces.size() ), false, CONFG_CYAN );
   
   localplayer_ptr = p.read<U32>( p.code_match( p.client, LOCALPLAYER_SIG ) + 3 ) + 4;
-  hack_print_offset( 1, "localplayer", localplayer_ptr );
+  hack_print_offset( 1, "localplayer", localplayer_ptr ); progress( .65f );
   jump_ptr        = get_jump_offset( &p );
-  hack_print_offset( 2, "jump", jump_ptr );
+  hack_print_offset( 2, "jump", jump_ptr ); progress( .7f );
   attack_ptr      = get_attack_offset( &p );
-  hack_print_offset( 3, "attack", attack_ptr ); 
+  hack_print_offset( 3, "attack", attack_ptr ); progress( .75f );
   glow_ptr        = p.read<U32>( p.code_match( p.client, GLOWSTRUCT_SIG ) + 1 ) + 4;
-  hack_print_offset( 4, "glow", glow_ptr );
+  hack_print_offset( 4, "glow", glow_ptr ); progress( .8f );
   clantag_ptr = get_clantag_offset( &p );
-  hack_print_offset( 5, "SetClanTag", clantag_ptr );
-  
+  hack_print_offset( 5, "SetClanTag", clantag_ptr ); progress( .9f );
+
+  progress( 1.f );
   CSGOENTITY::csgop = &p;
   
   return &p;

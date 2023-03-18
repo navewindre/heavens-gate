@@ -307,16 +307,16 @@ STR<64> con_progressbar( F32 progress, U8 width ) {
   if( width <= 3 )
     return "";
   
-  char* ret = (char*)_alloca( width + 1 );
-  memset( ret, ' ', width );
+  STR<64> ret;
+  memset( ret.data, ' ', width );
   ret[width] = 0;
 
   ret[0] = '[';
   ret[width - 1] = ']';
   
   progress = u_clamp( progress, 0.f, 1.f ); 
-  U8 total = (U8)( ( width - 2 ) * progress );
-  for( size_t i = 1; i < total; ++i ) {
+  U8 total = (U8)( ( width - 1 ) * progress );
+  for( U8 i = 1; i < total; ++i ) {
     ret[i] = '=';
   }
 
@@ -326,7 +326,7 @@ STR<64> con_progressbar( F32 progress, U8 width ) {
       last_call = u_tick();
     }
   
-    ret[total - 1 + 1] = spinner_anim[cur_spinner];
+    ret[total + 1] = spinner_anim[cur_spinner % sizeof(spinner_anim)];
   }
 
   return ret;

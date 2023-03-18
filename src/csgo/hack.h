@@ -5,8 +5,6 @@
 #include <time.h>
 
 #include "../conout.h"
-#include "../vars.h"
-
 #include "../setting.h"
 
 #include "csgo.h"

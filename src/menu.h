@@ -2,7 +2,6 @@
 
 #include "process.h"
 #include "util.h"
-#include "vars.h"
 
 #include "syscall.h"
 #include "csgo/csgo.h"

@@ -3,7 +3,6 @@
 
 #include <windows.h>
 #include "conin.h"
-#include "vars.h"
 #include <cstdio>
 #include "mathutil.h"
 #include "process.h"

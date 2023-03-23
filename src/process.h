@@ -188,7 +188,7 @@ public:
         if( out_size )
           *out_size = (U32)it.size;
 
-        return (U32)it.base;
+        return it.base;
       }
     }
 

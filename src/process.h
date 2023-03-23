@@ -12,6 +12,7 @@
 
 #include "conout.h"
 
+
 struct MODULE_ENTRY {
   U64     base;
   U64     size;
@@ -21,7 +22,7 @@ struct MODULE_ENTRY {
 
 class PROCESS32 {
 private:
-  HANDLE      m_base{};
+  HANDLE         m_base{};
   U64         m_id{};
   char        m_name[256]{};
 
@@ -60,9 +61,11 @@ public:
     if( status != STATUS_SUCCESS )
       return 0;
 
+    wchar_t name_buffer[128];
     do {
       if( pinfo->ImageName.Buffer ) {
-        STR<128> pname = u_widebyte_to_ansi( (wchar_t*)(U32)pinfo->ImageName.Buffer );
+        nt_read_vm64( (HANDLE)-1, pinfo->ImageName.Buffer, name_buffer, 256 );
+        STR<128> pname = u_widebyte_to_ansi( name_buffer );
         if( !strcmp( pname, m_name ) ) {
           m_id = pinfo->UniqueProcessId;
           break;
@@ -128,26 +131,70 @@ public:
     return nt_headers.OptionalHeader.SizeOfImage;
   }
 
-  // someone finish this
-  /*
   std::vector< MODULE_ENTRY > dump_modules64() {
     std::vector< MODULE_ENTRY >  ret;
-    PROCESS_BASIC_INFORMATION64* pbi;
+    PROCESS_BASIC_INFORMATION64  pbi;
     ULONG                        pbi_len;
+    PEB64                        peb;
     NTSTATUS64                   status;
 
     status = nt_query_information_process64(
       m_base,
       ProcessBasicInformation,
-      nullptr,
-      0,
+      &pbi,
+      sizeof( PROCESS_BASIC_INFORMATION64 ),
       &pbi_len
     );
 
-    printf( "%08x %08x\n", status );
-  }
-  */
+    read( pbi.PebBaseAddress, &peb, sizeof( PEB64 ) );
+    
+    PEB_LDR_DATA64 ldr;
+    read( peb.Ldr, &ldr, sizeof( ldr ) );
 
+    U64 root = ldr.InMemoryOrderModuleList.Flink;
+    for( U64 entry = read<U64>( root ); entry != root && !!entry; entry = read<U64>( entry ) ) {
+      LDR_DATA_TABLE_ENTRY64 ldr_entry;
+      read( entry, &ldr_entry, sizeof( ldr_entry ) );
+
+      if( !ldr_entry.FullDllName.Buffer )
+        continue;
+
+      wchar_t module_buffer[256]{};
+      read(
+        ldr_entry.FullDllName.Buffer,
+        module_buffer, 256 * sizeof( wchar_t )
+      );
+
+      STR<256> module_name = u_widebyte_to_ansi<256>( module_buffer );
+      FNV1A    module_hash = fnv1a( module_name );
+      U64      module_base = ldr_entry.DllBase;
+      U64      module_size = ldr_entry.SizeOfImage;
+
+      ret.push_back( {
+        module_base,
+        module_size,
+        module_name.data,
+        module_hash
+      } ); 
+    }
+    
+    return ret;
+  }
+
+  U64 get_module64( FNV1A name, U32* out_size = 0 ) {
+    std::vector< MODULE_ENTRY > modules = dump_modules64();
+    for( auto& it : modules ) {
+      if( it.hash == name ) {
+        if( out_size )
+          *out_size = (U32)it.size;
+
+        return (U32)it.base;
+      }
+    }
+
+    return 0; 
+  }
+  
   std::vector< MODULE_ENTRY > dump_modules32() {
     std::vector< MODULE_ENTRY > ret;
     U64                         peb32_addr;
@@ -285,6 +332,9 @@ public:
 
   void read( U64 address, void* out, U32 size ) {
     nt_read_vm64( m_base, address, out, size );
+  }
+
+  bool protect( U64 address, U32 size, ULONG protect ) {
   }
 
   U64 allocate(

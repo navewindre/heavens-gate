@@ -26,78 +26,79 @@ U32 clientstate_ptr;
 U32 pitch_ptr;
 U32 yaw_ptr;
 
-U32  get_player(    CSGO* p, U8 player_index ) {
-  return p->read<U32>(
-    p->client + 0x4DFEF0C + player_index * 0x10
-    );
-}
-bool failed_checks( CSGO* p, U32 player ) {
+bool aim_check_player( CSGOPLAYER player, CSGO* p ) {
   if( !player )
     return true; // if no player
-  if( player == p->read<U32>( localplayer_ptr ) )
+  if( player.base == p->read<U32>( localplayer_ptr ) )
     return true; // if player is you
-  if( p->read<bool>( player + 0xED ) )
+  if( player.get<bool>( 0xed ) )
     return true; // dormant
-  if( p->read<I32>( player + 0x25F ) )
+  if( player.get<I32>( 0x25f ) )
     return true; // lifestate
-  if( !p->read<I32>( player + 0x980 ) )
+  if( player.get<I32>( 0x980 ) )
     return true; // bspottedbymask
   return false;
 }
-VEC3 get_aim_pos(   CSGO* p, U32 bonematrix, U32 bone ) {
-  return VEC3 {
-    p->read<F32>( bonematrix + 0x30 * bone + 0x0C ),
-    p->read<F32>( bonematrix + 0x30 * bone + 0x1C ),
-    p->read<F32>( bonematrix + 0x30 * bone + 0x2C )
-  };
-}
-bool is_invalid_weapon( CSGO* p, U32 w ) {
-  // https://developer.valvesoftware.com/wiki/Mp_items_prohibited
-  return ( w == 37 || ( w >= 41 && w <= 59 ) || w >= 68 || w == 20 );
-}
+
 void hack_run_aim( CSGO* p ) {
-  if( !aim_active ) return;
-  if( p->read<I32>( localplayer_ptr + 0x100 ) < 1 ) return;
+  if( !aim_active )
+    return;
+  
+  CSGOPLAYER local = p->read<U32>( localplayer_ptr );
+  if( local.get<I32>( 0x100 ) < 1 )
+    return;
 
   F32 m_pitch, m_yaw;
-#define reset { m_pitch = 0.022000001f; m_yaw = 0.022000001f; }
 
-  F32 lowest{ 3.33f }, distance{ };
-  U32 closest{ };
-  for( U32 index{ }; index <= 32; ++index ) {
-    U32 player = get_player( p, index );
-    if( failed_checks ) continue;
-    VEC3 local_pos  = p->read<VEC3>( localplayer_ptr + 0x138 ) +
-      p->read<VEC3>( localplayer_ptr + 0x108 );
-    U32 clientstate = p->read<U32>(  clientstate_ptr );
-    VEC3 local_view = p->read<VEC3>( clientstate + 0x4D90 );
-    U32 bonematrix  = p->read<U32>(  localplayer_ptr + 0x26A8 );
-    VEC3 target_pos = get_aim_pos(   p, bonematrix, 8 );
-    VEC3 target_ang = vector_angles( local_pos, target_pos );
-    target_ang.clamp( );
-    distance = ( local_view - target_ang ).clamp( ).length2d( );
-    if( distance > lowest )
+  U32 wep_idx = local.get<U32>( 0x2f08 ) & 0xFFF;
+  CSGOENTITY weapon = CSGOENTITY::from_list( wep_idx - 1 ); 
+
+  // why even run the aimbot if you dont have a valid weapon?
+  if( !wep_idx || !weapon || !weapon.is_weapon() ) {
+    m_yaw = m_pitch = 0.022f;
+
+    U32 m_pitch_xor = ( *reinterpret_cast<U32*>( &m_pitch ) ^ pitch_ptr ),
+    m_yaw_xor       = ( *reinterpret_cast<U32*>( &m_yaw   ) ^ yaw_ptr   );
+    p->write< U32 >( pitch_ptr, m_pitch_xor );
+    p->write< U32 >( yaw_ptr  , m_yaw_xor   );
+
+    return;
+  }
+  
+  //why are you getting the local pos and angle every time in the loop?
+  VEC3 local_pos  = local.get<VEC3>( 0x138 ) + local.get<VEC3>( 0x108 );
+  U32 clientstate = p->read<U32>(  clientstate_ptr );
+  VEC3 local_view = p->read<VEC3>( clientstate + 0x4D90 );
+
+  F32 lowest_dist{ 3.33f };
+  U32 closest{};
+  for( U32 index{}; index <= 32; ++index ) {
+    CSGOPLAYER player = CSGOENTITY::from_list( index );
+    
+    if( !aim_check_player( player, p ) )
       continue;
-    lowest = distance;
+    
+    VEC3 target_pos = player.get_bone_pos( 8 );
+    //it's already normalized
+    VEC3 target_ang = vector_angles( local_pos, target_pos );
+
+    F32 distance = ( local_view - target_ang ).clamp().length2d();
+    if( distance > lowest_dist )
+      continue;
+    lowest_dist = distance;
     closest = player;
   }
 
-  // weapon check || target check
-  U32 active_weapon = p->read<U32>( localplayer_ptr + 0x2F08 ) & 0xFFF;
-  U32 weapon = p->read<U32>(
-    p->client + 0x4DFEF0C + ( active_weapon - 1 ) * 0x10
-    );
-  I16 w = p->read<I16>( weapon + 0x2FBA );
-  if( !closest || is_invalid_weapon( p, w ) ) reset
-  else {
-    m_pitch = 0.001f + ( 0.022000001f - 0.001f ) * ( distance / 3.33f ),
-      m_yaw   = 0.001f + ( 0.022000001f - 0.001f ) * ( distance / 3.33f );
-  }
+  if( !closest )
+    return;
+    
+  m_pitch = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f ),
+  m_yaw   = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f );
+
   U32 m_pitch_xor = ( *reinterpret_cast<U32*>( &m_pitch ) ^ pitch_ptr ),
-      m_yaw_xor   = ( *reinterpret_cast<U32*>( &m_yaw   ) ^ yaw_ptr   );
+  m_yaw_xor       = ( *reinterpret_cast<U32*>( &m_yaw   ) ^ yaw_ptr   );
   p->write< U32 >( pitch_ptr, m_pitch_xor );
-  p->write< U32 >( yaw_ptr  , m_yaw_xor   );
-  // hope everything is up to par.
+  p->write< U32 >( yaw_ptr  , m_yaw_xor   ); 
 }
 
 void hack_run_bhop( CSGO* p ) {

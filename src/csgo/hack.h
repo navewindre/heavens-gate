@@ -21,8 +21,12 @@ extern F64  perf_tps;
 const char* const LOCALPLAYER_SIG = "8D 34 85 ? ? ? ? 89 15 ? ? ? ? 8B 41 08 8B 48 04 83 F9 FF";
 const char* const GLOWSTRUCT_SIG  = "A1 ? ? ? ? A8 01 75 4B";
 
+const char* const PITCHCLASS_SIG  = "B9 ? ? ? ? 89 44 24 40";
+const char* const YAWCLASS_SIG    = "8B 44 24 1C 35 ? ? ? ? 89 44 24 14 EB 0D";
+
 extern U32 localplayer_ptr;
 
+extern void hack_run_aim( CSGO* p );
 extern void hack_run_bhop( CSGO* p );
 extern void hack_run_trigger( CSGO* p );
 extern void hack_run_glow( CSGO* p );
@@ -39,6 +43,7 @@ static bool hack_run( PROCESS32* p ) {
   
   CSGO* csgo = (CSGO*)p;
 
+  hack_run_aim( csgo );
   hack_run_bhop( csgo );
   hack_run_trigger( csgo );
   hack_run_glow( csgo );

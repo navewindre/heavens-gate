@@ -5,7 +5,7 @@
 
 struct VEC3 {
   F32 x, y, z;
-  
+
   VEC3() { x = y = z = 0.0f; }
   VEC3( F32 X, F32 Y, F32 Z ) { x = X; y = Y; z = Z; }
   VEC3( const F32* v ) { x = v[0]; y = v[1]; z = v[2]; }
@@ -19,14 +19,14 @@ struct VEC3 {
   VEC3& operator-=( const VEC3& v ) { x -= v.x; y -= v.y; z -= v.z; return *this; }
   VEC3& operator*=( const VEC3& v ) { x *= v.x; y *= v.y; z *= v.z; return *this; }
   VEC3& operator/=( const VEC3& v ) { x /= v.x; y /= v.y; z /= v.z; return *this; }
-  
+
   VEC3 operator+( const VEC3& v ) const { return VEC3( x + v.x, y + v.y, z + v.z ); }
   VEC3 operator-( const VEC3& v ) const { return VEC3( x - v.x, y - v.y, z - v.z ); }
   VEC3 operator*( const VEC3& v ) const { return VEC3( x * v.x, y * v.y, z * v.z ); }
   VEC3 operator/( const VEC3& v ) const { return VEC3( x / v.x, y / v.y, z / v.z ); }
 
   operator bool() const { return !is_zero(); }
-  
+
   F32 length() const {
     return sqrtf( x * x + y * y + z * z );
   }
@@ -75,7 +75,7 @@ struct VEC3 {
       y > -FLT_EPSILON && y < FLT_EPSILON &&
       z > -FLT_EPSILON && z < FLT_EPSILON );
   }
-  
+
   inline void normalize_in_place() {
     F32 iradius = 1.f / ( length() + FLT_EPSILON ); //FLT_EPSILON
 
@@ -100,7 +100,18 @@ struct VEC3 {
     x = x > 89.f ? 89.f : x < -89.f ? -89.f : x;
     y = y > 180.f ? 180.f : y < -180.f ? -180.f : y;
     z = 0.f;
-    
+
     return *this;
   }
 };
+
+_forceinline VEC3 vector_angles( const VEC3& start, const VEC3& end ) {
+  VEC3 delta	= end - start;
+
+  float magnitude = sqrtf( ( delta.x * delta.x ) + ( delta.y * delta.y ) );
+  float pitch		= atan2f( -delta.z, magnitude ) * 57.295779513082f; 
+  float yaw		= atan2f( delta.y, delta.x ) * 57.295779513082f;
+
+  VEC3 angle( pitch, yaw, 0.0f );
+  return angle.clamp( );
+}

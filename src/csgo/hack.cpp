@@ -8,6 +8,7 @@
 
 SETTING_HOLDER settings;
 SETTING<I32>  triggerbot_key{ &settings, "triggerbot_key", 0x6 };
+SETTING<bool> aim_active{ &settings, "aim_active", false };
 SETTING<bool> bhop_active{ &settings, "bhop_active", true };
 SETTING<bool> glow_active{ &settings, "glow_active", false };
 SETTING<bool> clantag_active{ &settings, "clantag_active", false };
@@ -21,6 +22,83 @@ U32 attack_ptr;
 U32 glow_ptr;
 U32 clantag_ptr;
 U32 clientstate_ptr;
+
+U32 pitch_ptr;
+U32 yaw_ptr;
+
+U32  get_player(    CSGO* p, U8 player_index ) {
+  return p->read<U32>(
+    p->client + 0x4DFEF0C + player_index * 0x10
+    );
+}
+bool failed_checks( CSGO* p, U32 player ) {
+  if( !player )
+    return true; // if no player
+  if( player == p->read<U32>( localplayer_ptr ) )
+    return true; // if player is you
+  if( p->read<bool>( player + 0xED ) )
+    return true; // dormant
+  if( p->read<I32>( player + 0x25F ) )
+    return true; // lifestate
+  if( !p->read<I32>( player + 0x980 ) )
+    return true; // bspottedbymask
+  return false;
+}
+VEC3 get_aim_pos(   CSGO* p, U32 bonematrix, U32 bone ) {
+  return VEC3 {
+    p->read<F32>( bonematrix + 0x30 * bone + 0x0C ),
+    p->read<F32>( bonematrix + 0x30 * bone + 0x1C ),
+    p->read<F32>( bonematrix + 0x30 * bone + 0x2C )
+  };
+}
+bool is_invalid_weapon( CSGO* p, U32 w ) {
+  // https://developer.valvesoftware.com/wiki/Mp_items_prohibited
+  return ( w == 37 || ( w >= 41 && w <= 59 ) || w >= 68 || w == 20 );
+}
+void hack_run_aim( CSGO* p ) {
+  if( !aim_active ) return;
+  if( p->read<I32>( localplayer_ptr + 0x100 ) < 1 ) return;
+
+  F32 m_pitch, m_yaw;
+#define reset { m_pitch = 0.022000001f; m_yaw = 0.022000001f; }
+
+  F32 lowest{ 3.33f }, distance{ };
+  U32 closest{ };
+  for( U32 index{ }; index <= 32; ++index ) {
+    U32 player = get_player( p, index );
+    if( failed_checks ) continue;
+    VEC3 local_pos  = p->read<VEC3>( localplayer_ptr + 0x138 ) +
+      p->read<VEC3>( localplayer_ptr + 0x108 );
+    U32 clientstate = p->read<U32>(  clientstate_ptr );
+    VEC3 local_view = p->read<VEC3>( clientstate + 0x4D90 );
+    U32 bonematrix  = p->read<U32>(  localplayer_ptr + 0x26A8 );
+    VEC3 target_pos = get_aim_pos(   p, bonematrix, 8 );
+    VEC3 target_ang = vector_angles( local_pos, target_pos );
+    target_ang.clamp( );
+    distance = ( local_view - target_ang ).clamp( ).length2d( );
+    if( distance > lowest )
+      continue;
+    lowest = distance;
+    closest = player;
+  }
+
+  // weapon check || target check
+  U32 active_weapon = p->read<U32>( localplayer_ptr + 0x2F08 ) & 0xFFF;
+  U32 weapon = p->read<U32>(
+    p->client + 0x4DFEF0C + ( active_weapon - 1 ) * 0x10
+    );
+  I16 w = p->read<I16>( weapon + 0x2FBA );
+  if( !closest || is_invalid_weapon( p, w ) ) reset
+  else {
+    m_pitch = 0.001f + ( 0.022000001f - 0.001f ) * ( distance / 3.33f ),
+      m_yaw   = 0.001f + ( 0.022000001f - 0.001f ) * ( distance / 3.33f );
+  }
+  U32 m_pitch_xor = ( *reinterpret_cast<U32*>( &m_pitch ) ^ pitch_ptr ),
+      m_yaw_xor   = ( *reinterpret_cast<U32*>( &m_yaw   ) ^ yaw_ptr   );
+  p->write< U32 >( pitch_ptr, m_pitch_xor );
+  p->write< U32 >( yaw_ptr  , m_yaw_xor   );
+  // hope everything is up to par.
+}
 
 void hack_run_bhop( CSGO* p ) {
   if( !bhop_active || !( GetAsyncKeyState( VK_SPACE ) & 0x8000 ) ) 
@@ -381,6 +459,9 @@ CSGO* hack_init() {
   clientstate_ptr = get_clientstate_offset( &p );
   hack_print_offset( 6, "clientstate", clientstate_ptr ); progress( .9f );
   
+  pitch_ptr = p.code_match( p.client, PITCHCLASS_SIG ) + 0x2C;
+  yaw_ptr   = p.code_match( p.client, YAWCLASS_SIG   ) + 0x2C;
+
   progress( 1.f );
   CSGOENTITY::csgop = &p;
   

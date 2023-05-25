@@ -299,8 +299,11 @@ public:
       
       U8* buffer = (U8*)malloc( (U32)mbi.RegionSize );
       read( (U32)mbi.BaseAddress, buffer, (U32)mbi.RegionSize );
-      
+
       for( U32 i = 0; i < mbi.RegionSize - length; ++i ) {
+        if( (U32)mbi.BaseAddress + i < start )
+          continue;
+        
         if( u_binary_match( buffer + i, bytes, length ) ) {
           free( buffer );
           return (U32)mbi.BaseAddress + i;

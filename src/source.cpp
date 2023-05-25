@@ -5,6 +5,7 @@
 #include "util.h"
 #include "conin.h"
 #include "menu.h"
+#include "csgo/convar.h"
 
 bool run() {
   con_init();
@@ -26,6 +27,8 @@ bool run() {
 }
   
 I32 __cdecl main() {
+  con_init();
+  
   u_set_debug_privilege();
   u_thread_create( &con_hook_handler );
   u_thread_create( &con_handler );

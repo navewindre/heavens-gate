@@ -25,3 +25,4 @@ typedef unsigned long PTR;
 
 
 #define assert( x ) if( !x ) con_set_assert( "ASSERTION FAILED: %s() (line: %d)", __func__, __LINE__ )
+#define pause() system( "pause" )

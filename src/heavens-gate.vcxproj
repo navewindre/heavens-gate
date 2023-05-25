@@ -76,6 +76,8 @@
     <IntDir>..\intermediate\$(Configuration)\</IntDir>
     <TargetName>heavens-gate</TargetName>
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
+    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -96,7 +98,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalOptions>/ENTRY:"mainCRTStartup" %(AdditionalOptions) /IGNORE:4530</AdditionalOptions>
-      <Profile>true</Profile>
+      <Profile>false</Profile>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
     <ResourceCompile>
       <ResourceOutputFileName>$(IntDir)%(Filename).res</ResourceOutputFileName>
@@ -197,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asmutil.h" />
+    <ClInclude Include="csgo\convar.h" />
     <ClInclude Include="csgo\csgo.h" />
     <ClInclude Include="csgo\csgoentity.h" />
     <ClInclude Include="csgo\csgoplayer.h" />

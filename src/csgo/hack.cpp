@@ -3,6 +3,7 @@
 
 #include "hack.h"
 
+#include "convar.h"
 #include "netvar.h"
 #include "../disasm.h"
 
@@ -67,7 +68,7 @@ void hack_run_aim( CSGO* p ) {
   
   //why are you getting the local pos and angle every time in the loop?
   VEC3 local_pos  = local.get<VEC3>( 0x138 ) + local.get<VEC3>( 0x108 );
-  U32 clientstate = p->read<U32>(  clientstate_ptr );
+  U32 clientstate = p->read<U32>( clientstate_ptr );
   VEC3 local_view = p->read<VEC3>( clientstate + 0x4D90 );
 
   F32 lowest_dist{ 3.33f };
@@ -448,20 +449,22 @@ CSGO* hack_init() {
   con_set_line_subtext( 0, u_num_to_string_dec( p.interfaces.size() ), false, CONFG_CYAN );
   
   localplayer_ptr = p.read<U32>( p.code_match( p.client, LOCALPLAYER_SIG ) + 3 ) + 4;
-  hack_print_offset( 1, "localplayer", localplayer_ptr ); progress( .65f );
+  hack_print_offset( 1, "localplayer", localplayer_ptr ); progress( .62f );
   jump_ptr        = get_jump_offset( &p );
-  hack_print_offset( 2, "jump", jump_ptr ); progress( .7f );
+  hack_print_offset( 2, "jump", jump_ptr ); progress( .65f );
   attack_ptr      = get_attack_offset( &p );
-  hack_print_offset( 3, "attack", attack_ptr ); progress( .75f );
+  hack_print_offset( 3, "attack", attack_ptr ); progress( .7f );
   glow_ptr        = p.read<U32>( p.code_match( p.client, GLOWSTRUCT_SIG ) + 1 ) + 4;
-  hack_print_offset( 4, "glow", glow_ptr ); progress( .8f );
+  hack_print_offset( 4, "glow", glow_ptr ); progress( .74f );
   clantag_ptr = get_clantag_offset( &p );
-  hack_print_offset( 5, "SetClanTag", clantag_ptr ); progress( .85f );
+  hack_print_offset( 5, "SetClanTag", clantag_ptr ); progress( .78f );
   clientstate_ptr = get_clientstate_offset( &p );
-  hack_print_offset( 6, "clientstate", clientstate_ptr ); progress( .9f );
-  
-  pitch_ptr = p.code_match( p.client, PITCHCLASS_SIG ) + 0x2C;
-  yaw_ptr   = p.code_match( p.client, YAWCLASS_SIG   ) + 0x2C;
+  hack_print_offset( 6, "clientstate", clientstate_ptr ); progress( .83f );
+
+  pitch_ptr = convar_find( &p, "m_pitch" );
+  hack_print_offset( 7, "pitch", pitch_ptr ); progress( .90f );  
+  yaw_ptr   = convar_find( &p, "m_yaw" );
+  hack_print_offset( 8, "yaw", yaw_ptr ); progress( 1.f );
 
   progress( 1.f );
   CSGOENTITY::csgop = &p;

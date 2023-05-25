@@ -56,7 +56,7 @@ inline U32 netvar_get_table( CSGO* csgo, const char* table_name ) {
   static VECTOR<NETVAR_TABLE> tables = netvar_get_tables( csgo, list_ptr );
 
   for( auto& it : tables ) {
-    if( strstr( it.name.data, table_name ) )
+    if( !strcmp( it.name.data, table_name ) )
       return it.ptr;
   }
 
@@ -83,7 +83,8 @@ inline I32 netvar_get_entry( CSGO* csgo, const char* name, U32 table_ptr ) {
 
     STR<64> prop_name;
     csgo->read( (U32)prop->varname, prop_name.data, 64 );
-    if( !strstr( prop_name.data, name ) )
+
+    if( !!strcmp( prop_name.data, name ) )
       continue;
 
     ret += prop->offset;

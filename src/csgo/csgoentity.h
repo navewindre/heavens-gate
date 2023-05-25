@@ -51,21 +51,20 @@ public:
   
   NETVAR( m_fFlags, "DT_CSPlayer", I32 );
   OFFSET( m_iCrosshairID, "m_bHasDefuser", "DT_CSPlayer", I32, 92 );
+  OFFSET( m_dwBoneMatrix, "m_nForceBone", "DT_BaseAnimating", U32, 28 );
 
-  // this also doesn't need to be a part of the aimbot.
   static CSGOENTITY from_list( I32 idx ) {
-    // nice fucking arbitrary magic number
-    const U32 entlist = 0x4dfef0c;
-
+    const U32 entlist = csgop->code_match(
+      csgop->client, "BB ? ? ? ? 83 FF 01 0F 8C ? ? ? ? 3B F8"
+    );
+    
     return csgop->read<U32>(
       csgop->client + entlist + idx * 0x10
     );
   }
 
-  // also doesn't have to be a part of the aimbot
   bool is_weapon() {
     CSGO_CLIENT_CLASS cl = get_clientclass();
-    
     return cl.index >= CWeaponAug && cl.index <= CWeaponXM1014;
   }
   

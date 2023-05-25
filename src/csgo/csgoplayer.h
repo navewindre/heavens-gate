@@ -19,5 +19,6 @@ public:
     };
   }
 
-  NETVAR( m_iTeam, "DT_CSPlayer", I32 );
+  NETVAR( m_iTeamNum, "DT_CSPlayer", I32 );
+  NETVAR( m_clrRender, "DT_CSPlayer", BYTECOLOR );
 };

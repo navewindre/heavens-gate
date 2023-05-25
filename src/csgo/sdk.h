@@ -4,6 +4,16 @@
 #pragma once
 #include "../vec3.h"
 
+struct BYTECOLOR {
+  BYTECOLOR() = default;
+  BYTECOLOR( U8 r1, U8 g1, U8 b1, U8 a1 ) : r( r1 ), g( g1 ), b( b1 ), a( a1 ) {}
+
+  U8 r;
+  U8 g;
+  U8 b;
+  U8 a;
+};
+
 struct COLOR {
   COLOR()  = default;
   COLOR( F32 r1, F32 g1, F32 b1, F32 a1 ) : r( r1 ), g( g1 ), b( b1 ), a( a1 ) {}

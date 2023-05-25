@@ -141,7 +141,7 @@ void hack_run_glow( CSGO* p ) {
   if( !local )
     return;
 
-  U32 local_team = local.m_iTeam();
+  U32 local_team = local.m_iTeamNum();
 
   GLOW_OBJ_MANAGER glow;
   p->read( glow_ptr, &glow, sizeof( GLOW_OBJ_MANAGER ) );
@@ -163,14 +163,17 @@ void hack_run_glow( CSGO* p ) {
     COLOR             color;
 
     /* clientclass outdated af*/
-    if( cl.index == CBasePlayer ) {
-      I32 team = e.m_iTeam();
+    if( cl.index == CCSPlayer ) {
+      I32 team = e.m_iTeamNum();
       if( team == local_team || (team != 2 && team != 3) )
         continue;
     
       color = ( team == 2 ) ?
         COLOR{ 1.0f, 0.17f, 0.37f, 0.7f } : 
         COLOR{ 0.17f, 0.67f, 0.8f, 0.8f };
+
+      // this is the 'chams' accent color
+      e.m_clrRender( BYTECOLOR{ 232, 85, 193, 255 } );
     }
     else if( cl.index >= CWeaponAug && cl.index <= CWeaponXM1014 && !o.rwo ) {
       color = { 0.8f, 0.8f, 0.8f, 0.6f };
@@ -413,7 +416,7 @@ CSGO* hack_init() {
     con_set_bottomline_text( "waiting for process..." );
     Sleep( 500 );
   }
-
+  
   progress( .2f );
   do {
     p.client = p.get_module32( "client.dll"fnv );
@@ -466,6 +469,14 @@ CSGO* hack_init() {
   yaw_ptr   = convar_find( &p, "m_yaw" );
   hack_print_offset( 8, "yaw", yaw_ptr ); progress( 1.f );
 
+  // night mode
+  U32 tonemap_scale = convar_find( &p, "mat_force_tonemap_scale" );
+  convar_set<float>( &p, tonemap_scale, 0.2f );
+
+  // player brightness
+  U32 ambient_min = convar_find( &p, "r_modelAmbientMin" );
+  convar_set<float>( &p, ambient_min, 2000.f );
+  
   progress( 1.f );
   CSGOENTITY::csgop = &p;
   

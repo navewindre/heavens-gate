@@ -66,19 +66,17 @@ void hack_run_aim( CSGO* p ) {
     return;
   }
   
-  //why are you getting the local pos and angle every time in the loop?
-  VEC3 local_pos  = local.get<VEC3>( 0x138 ) + local.get<VEC3>( 0x108 );
-  U32 clientstate = p->read<U32>( clientstate_ptr );
-  VEC3 local_view = p->read<VEC3>( clientstate + 0x4D90 );
-
   F32 lowest_dist{ 3.33f };
   U32 closest{};
-  for( U32 index{}; index <= 32; ++index ) {
+  for( U32 index{}; index <= 64; ++index ) {
     CSGOPLAYER player = CSGOENTITY::from_list( index );
     
     if( !aim_check_player( player, p ) )
       continue;
     
+    VEC3 local_pos  = local.get<VEC3>( 0x138 ) + local.get<VEC3>( 0x108 );
+    U32 clientstate = p->read<U32>( clientstate_ptr );
+    VEC3 local_view = p->read<VEC3>( clientstate + 0x4D90 );
     VEC3 target_pos = player.get_bone_pos( 8 );
     //it's already normalized
     VEC3 target_ang = vector_angles( local_pos, target_pos );
@@ -92,7 +90,7 @@ void hack_run_aim( CSGO* p ) {
 
   if( !closest )
     return;
-    
+
   m_pitch = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f ),
   m_yaw   = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f );
 

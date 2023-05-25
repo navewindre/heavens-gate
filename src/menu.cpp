@@ -215,17 +215,17 @@ void show_page_2() {
     );
   });
 
-  con_set_line_text( 0, "triggerbot", false);
+  con_set_line_text( 1, "triggerbot", false);
   con_set_line_subtext(
-    0,
+    1,
     key_titles[triggerbot_key],
     false,
     CONFG_LIGHTBLUE
   );
 
-  con_set_line_callback( 0, []( CON_LINE *,U8 action ) {
+  con_set_line_callback( 1, []( CON_LINE *,U8 action ) {
     if( action == LINE_ACTION_ENTER ) {
-      con_update_hotkey( 0, triggerbot_key.v );
+      con_update_hotkey( 1, triggerbot_key.v );
     }
     } );
 }

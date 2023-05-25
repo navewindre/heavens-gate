@@ -12,7 +12,6 @@ inline U32 convar_find( CSGO* p, const char* name ) {
 
       U8* ptr_bytes = (U8*)( &string_ptr );
       U8 pattern[] = {
-        0x68, 0x00, 0x00, 0x00, 0x00, // tooltip
         0x68, 0x00, 0x00, 0x00, 0x00, // cvar creation flags
         0x68, 0x00, 0x00, 0x00, 0x00, // defaultValue
         0x68,
@@ -25,7 +24,7 @@ inline U32 convar_find( CSGO* p, const char* name ) {
   
       U32 string_ref = p->code_match( (U32)it.base, pattern, sizeof( pattern ) );
       if( string_ref )
-        return p->read<U32>( string_ref - 6 );
+        return p->read<U32>( string_ref - 11 );
 
       // try with mov instead of call
       pattern[sizeof( pattern ) - 1] = 0xb9; // mov ecx, this

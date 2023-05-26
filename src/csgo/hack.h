@@ -29,7 +29,9 @@ extern U32 localplayer_ptr;
 extern void hack_run_aim( CSGO* p );
 extern void hack_run_bhop( CSGO* p );
 extern void hack_run_trigger( CSGO* p );
+extern void hack_run_chams( CSGO* p );
 extern void hack_run_glow( CSGO* p );
+extern void hack_run_nightmode( CSGO* p );
 extern void hack_run_clantag( CSGO* p );
 extern CSGO* hack_init();
 
@@ -46,7 +48,9 @@ static bool hack_run( PROCESS32* p ) {
   hack_run_aim( csgo );
   hack_run_bhop( csgo );
   hack_run_trigger( csgo );
+  hack_run_chams( csgo );
   hack_run_glow( csgo );
+  hack_run_nightmode( csgo );
   hack_run_clantag( csgo );
   
   perf_ipt = (tick - last_tick) * 0.000000001; 

@@ -95,7 +95,9 @@ void show_page_0() {
 
 void show_page_1() {
   static SETTING<bool>& bhop_active = *settings.find<bool>( "bhop_active"fnv );
+  static SETTING<bool>& chams_active = *settings.find<bool>( "chams_active"fnv );
   static SETTING<bool>& glow_active = *settings.find<bool>( "glow_active"fnv );
+  static SETTING<bool>& nightmode_active = *settings.find<bool>( "nightmode_active"fnv );
   static SETTING<bool>& clantag_active = *settings.find<bool>( "clantag_active"fnv );
 
   con_set_line_text( 0,"bhop",false );
@@ -116,36 +118,72 @@ void show_page_1() {
     );
     });
 
-  con_set_line_text(1, "glow", false);
+  con_set_line_text(1, "chams", false);
   con_set_line_subtext(
     1,
+    chams_active? "[on]" : "[off]",
+    false,
+    chams_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+  );
+
+  con_set_line_callback( 1, []( CON_LINE *self,U8 action ) {
+    chams_active = !chams_active;
+    con_set_line_subtext(
+      1,
+      chams_active? "[on]" : "[off]",
+      self->active,
+      chams_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+    );
+    });
+
+  con_set_line_text(2, "glow", false);
+  con_set_line_subtext(
+    2,
     glow_active? "[on]" : "[off]",
     false,
     glow_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
   );
 
-  con_set_line_callback( 1, []( CON_LINE *self,U8 action ) {
+  con_set_line_callback( 2, []( CON_LINE *self,U8 action ) {
     glow_active = !glow_active;
     con_set_line_subtext(
-      1,
+      2,
       glow_active? "[on]" : "[off]",
       self->active,
       glow_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
     );
     });
 
-  con_set_line_text( 2, "clantag changer" );
+  con_set_line_text(3, "nightmode", false);
   con_set_line_subtext(
-    2,
+    3,
+    nightmode_active? "[on]" : "[off]",
+    false,
+    nightmode_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+  );
+
+  con_set_line_callback( 3, []( CON_LINE *self,U8 action ) {
+    nightmode_active = !nightmode_active;
+    con_set_line_subtext(
+      3,
+      nightmode_active? "[on]" : "[off]",
+      self->active,
+      nightmode_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+    );
+    });
+
+  con_set_line_text( 4, "clantag changer" );
+  con_set_line_subtext(
+    4,
     clantag_active? "[on]" : "[off]",
     false,
     glow_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
   );
 
-  con_set_line_callback( 2, []( CON_LINE* self, U8 action ) {
+  con_set_line_callback( 4, []( CON_LINE* self, U8 action ) {
     clantag_active = !clantag_active;
     con_set_line_subtext(
-      2,
+      4,
       clantag_active? "[on]" : "[off]",
       self->active,
       clantag_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED

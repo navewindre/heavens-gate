@@ -7,11 +7,15 @@
 #include "netvar.h"
 #include "../disasm.h"
 
+#include <algorithm>
+
 SETTING_HOLDER settings;
 SETTING<I32>  triggerbot_key{ &settings, "triggerbot_key", 0x6 };
 SETTING<bool> aim_active{ &settings, "aim_active", false };
 SETTING<bool> bhop_active{ &settings, "bhop_active", true };
+SETTING<bool> chams_active{ &settings, "chams_active", false };
 SETTING<bool> glow_active{ &settings, "glow_active", false };
+SETTING<bool> nightmode_active{ &settings, "nightmode_active", false };
 SETTING<bool> clantag_active{ &settings, "clantag_active", false };
 
 F64  perf_ipt = .0;
@@ -24,6 +28,8 @@ U32 glow_ptr;
 U32 clantag_ptr;
 U32 clientstate_ptr;
 
+U32 ambientmin_ptr;
+U32 tonemap_ptr;
 U32 pitch_ptr;
 U32 yaw_ptr;
 
@@ -131,6 +137,15 @@ void hack_run_trigger( CSGO* p ) {
     p->write< I32 >( attack_ptr, 6 );
 }
 
+void hack_run_chams( CSGO* p ) {
+  if( chams_active ) {
+    convar_set<float>( p, ambientmin_ptr, 250.f );
+    return;
+  } else if( convar_get<float>( p, ambientmin_ptr ) == 0.f )
+    return;
+  convar_set<float>( p, ambientmin_ptr, 0.f );
+}
+
 void hack_run_glow( CSGO* p ) {
   if( !glow_active )
     return;
@@ -189,6 +204,28 @@ void hack_run_glow( CSGO* p ) {
   }
 
   free( glow_objects );
+}
+
+void hack_run_nightmode( CSGO* p ) {
+  static bool prev_active = false;
+  static F32 fade_amt = 0.05f,
+             anim_end = 0.f;
+  const F32 anim_time = 1.5f;
+
+  if( nightmode_active != prev_active ) {
+    prev_active = nightmode_active;
+    anim_end = u_tick() * 0.001f + anim_time;
+  }
+
+  F32 time = u_tick() * 0.001f;
+  if( time < anim_end ) {
+    fade_amt = std::clamp(
+      ( anim_end - time ) / anim_time,
+      0.05f,
+      1.f
+    );
+    convar_set<float>( p, tonemap_ptr, nightmode_active ? fade_amt : 1.05f - fade_amt );
+  }
 }
 
 __declspec( naked ) void __stdcall setclantag_shellcode( void* string ) {
@@ -466,15 +503,9 @@ CSGO* hack_init() {
   hack_print_offset( 7, "pitch", pitch_ptr ); progress( .90f );  
   yaw_ptr   = convar_find( &p, "m_yaw" );
   hack_print_offset( 8, "yaw", yaw_ptr ); progress( 1.f );
+  ambientmin_ptr = convar_find( &p, "r_modelAmbientMin" );   // do we have 9 & 10 ?
+  tonemap_ptr = convar_find( &p, "mat_force_tonemap_scale" ); // yikes.. no we do nots
 
-  // night mode
-  U32 tonemap_scale = convar_find( &p, "mat_force_tonemap_scale" );
-  convar_set<float>( &p, tonemap_scale, 0.2f );
-
-  // player brightness
-  U32 ambient_min = convar_find( &p, "r_modelAmbientMin" );
-  convar_set<float>( &p, ambient_min, 2000.f );
-  
   progress( 1.f );
   CSGOENTITY::csgop = &p;
   

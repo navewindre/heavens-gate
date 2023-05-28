@@ -128,6 +128,7 @@ void show_page_1() {
 
   con_set_line_callback( 1, []( CON_LINE *self,U8 action ) {
     chams_active = !chams_active;
+    hack_run_chams( csgop );
     con_set_line_subtext(
       1,
       chams_active? "[on]" : "[off]",

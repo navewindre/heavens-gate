@@ -138,12 +138,10 @@ void hack_run_trigger( CSGO* p ) {
 }
 
 void hack_run_chams( CSGO* p ) {
-  if( chams_active ) {
+  if( chams_active )
     convar_set<float>( p, ambientmin_ptr, 250.f );
-    return;
-  } else if( convar_get<float>( p, ambientmin_ptr ) == 0.f )
-    return;
-  convar_set<float>( p, ambientmin_ptr, 0.f );
+  else
+    convar_set<float>( p, ambientmin_ptr, 0.f );
 }
 
 void hack_run_glow( CSGO* p ) {

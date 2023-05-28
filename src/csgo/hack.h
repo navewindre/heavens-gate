@@ -48,7 +48,6 @@ static bool hack_run( PROCESS32* p ) {
   hack_run_aim( csgo );
   hack_run_bhop( csgo );
   hack_run_trigger( csgo );
-  hack_run_chams( csgo );
   hack_run_glow( csgo );
   hack_run_nightmode( csgo );
   hack_run_clantag( csgo );

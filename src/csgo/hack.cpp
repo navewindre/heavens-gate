@@ -186,8 +186,9 @@ void hack_run_glow( CSGO* p ) {
         COLOR{ 1.0f, 0.17f, 0.37f, 0.7f } : 
         COLOR{ 0.17f, 0.67f, 0.8f, 0.8f };
 
-      // this is the 'chams' accent color
-      e.m_clrRender( BYTECOLOR{ 232, 85, 193, 255 } );
+      // TODO: RUN ENTLIST AND CLEAR THIS ONCE CHAMS ARE DISABLED.
+      if( chams_active )
+        e.m_clrRender( BYTECOLOR{ 232, 85, 193, 255 } );
     }
     else if( cl.index >= CWeaponAug && cl.index <= CWeaponXM1014 && !o.rwo ) {
       color = { 0.8f, 0.8f, 0.8f, 0.6f };
@@ -209,23 +210,24 @@ void hack_run_glow( CSGO* p ) {
 
 void hack_run_nightmode( CSGO* p ) {
   static bool prev_active = false;
-  static F32 fade_amt = 0.05f,
-             anim_end = 0.f;
-  const F32 anim_time = 1.5f;
+
+  static F32 anim_end = 0.f;
+  const F32 anim_time = 1.2f;
 
   if( nightmode_active != prev_active ) {
+    F32 time = (F32)u_time();
+    anim_end = time + anim_time;
+    
     prev_active = nightmode_active;
-    anim_end = u_tick() * 0.001f + anim_time;
   }
 
-  F32 time = u_tick() * 0.001f;
+  F32 time = (F32)u_tick() / T_SEC;
   if( time < anim_end ) {
-    fade_amt = std::clamp(
-      ( anim_end - time ) / anim_time,
-      0.05f,
-      1.f
-    );
-    convar_set<float>( p, tonemap_ptr, nightmode_active ? fade_amt : 1.05f - fade_amt );
+    F32 delta = ( anim_end - time ) / anim_time;
+    if( delta > 1.0f )
+      delta = 1.0f;
+    
+    convar_set<float>( p, tonemap_ptr, nightmode_active ? 0.1f + delta * 0.9f : 1.0f - delta * 0.9f );
   }
 }
 

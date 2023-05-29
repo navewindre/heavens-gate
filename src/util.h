@@ -175,3 +175,8 @@ inline U64 u_tick() {
     return ticks.QuadPart;
   return (U64)(ticks.QuadPart / ((double)freq.QuadPart / wanted_precision) );
 }
+
+inline F64 u_time() {
+  constexpr F64 NSEC_TO_SEC = 1.f / T_SEC;
+  return u_tick() * NSEC_TO_SEC;
+}

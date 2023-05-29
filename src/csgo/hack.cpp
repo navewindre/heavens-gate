@@ -16,6 +16,7 @@ SETTING<bool> bhop_active{ &settings, "bhop_active", true };
 SETTING<bool> chams_active{ &settings, "chams_active", false };
 SETTING<bool> glow_active{ &settings, "glow_active", false };
 SETTING<bool> nightmode_active{ &settings, "nightmode_active", false };
+SETTING<bool> crosshair_active{ &settings, "crosshair_active", false };
 SETTING<bool> clantag_active{ &settings, "clantag_active", false };
 
 F64  perf_ipt = .0;
@@ -33,6 +34,7 @@ U32 ambientmin_ptr;
 U32 tonemap_ptr;
 U32 pitch_ptr;
 U32 yaw_ptr;
+U32 xhair_ptr;
 
 bool aim_check_player( CSGOPLAYER player, CSGO* p ) {
   if( !player )
@@ -225,6 +227,13 @@ void hack_run_nightmode( CSGO* p ) {
     );
     convar_set<float>( p, tonemap_ptr, nightmode_active ? fade_amt : 1.05f - fade_amt );
   }
+}
+
+void hack_run_crosshair( CSGO* p ) {
+  if( crosshair_active )
+    convar_set<F32>( p, xhair_ptr, 1.f );
+  else
+    convar_set<F32>( p, xhair_ptr, 0.f );
 }
 
 __declspec( naked ) void __stdcall setclantag_shellcode( void* string ) {
@@ -504,6 +513,7 @@ CSGO* hack_init() {
   hack_print_offset( 8, "yaw", yaw_ptr ); progress( 1.f );
   ambientmin_ptr = convar_find( &p, "r_modelAmbientMin" );   // do we have 9 & 10 ?
   tonemap_ptr = convar_find( &p, "mat_force_tonemap_scale" ); // yikes.. no we do nots
+  xhair_ptr = convar_find( &p, "cl_crosshair_recoil" );
 
   progress( 1.f );
   CSGOENTITY::csgop = &p;

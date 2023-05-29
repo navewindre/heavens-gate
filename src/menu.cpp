@@ -263,6 +263,7 @@ void show_page_1() {
 
 void show_page_2() {
   static SETTING<bool>& aim_active = *settings.find<bool>( "aim_active"fnv );
+  static SETTING<bool>& crosshair_active = *settings.find<bool>( "crosshair_active"fnv );
   static SETTING<I32>& triggerbot_key = *settings.find<I32>( "triggerbot_key"fnv );
 
   con_set_line_text( 0,"aim assist",false );
@@ -283,17 +284,36 @@ void show_page_2() {
     );
   });
 
-  con_set_line_text( 1, "triggerbot", false);
+  con_set_line_text( 1, "rcs xhair", false);
   con_set_line_subtext(
     1,
+    crosshair_active? "[on]" : "[off]",
+    false,
+    crosshair_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+  );
+
+  con_set_line_callback( 1, []( CON_LINE *self,U8 action ) {
+    crosshair_active = !crosshair_active;
+    hack_run_crosshair( csgop );
+    con_set_line_subtext(
+      1,
+      crosshair_active? "[on]" : "[off]",
+      self->active,
+      crosshair_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+    );
+    });
+
+  con_set_line_text( 2, "triggerbot", false);
+  con_set_line_subtext(
+    2,
     key_titles[triggerbot_key],
     false,
     CONFG_LIGHTBLUE
   );
 
-  con_set_line_callback( 1, []( CON_LINE *,U8 action ) {
+  con_set_line_callback( 2, []( CON_LINE *,U8 action ) {
     if( action == LINE_ACTION_ENTER ) {
-      con_update_hotkey( 1, triggerbot_key.v );
+      con_update_hotkey( 2, triggerbot_key.v );
     }
     } );
 }

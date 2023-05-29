@@ -142,7 +142,7 @@ void hack_run_trigger( CSGO* p ) {
 
 void hack_run_chams( CSGO* p ) {
   if( chams_active )
-    convar_set<float>( p, ambientmin_ptr, 250.f );
+    convar_set<float>( p, ambientmin_ptr, nightmode_active ? 850.f : 250.f );
   else
     convar_set<float>( p, ambientmin_ptr, 0.f );
 }
@@ -219,6 +219,7 @@ void hack_run_nightmode( CSGO* p ) {
     anim_end = time + anim_time;
     
     prev_active = nightmode_active;
+    hack_run_chams( p );
   }
 
   F32 time = (F32)u_tick() / T_SEC;

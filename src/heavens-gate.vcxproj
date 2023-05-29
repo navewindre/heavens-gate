@@ -210,6 +210,7 @@
     <ClInclude Include="csgo\materialsystem.h" />
     <ClInclude Include="csgo\netvar.h" />
     <ClInclude Include="csgo\sdk.h" />
+    <ClInclude Include="csgo\trace.h" />
     <ClInclude Include="disasm.h" />
     <ClInclude Include="fnv.h" />
     <ClInclude Include="mouse.h" />

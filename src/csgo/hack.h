@@ -12,6 +12,31 @@
 #include "csgoentity.h"
 #include "csgoplayer.h"
 
+struct CMD_FUNC {
+  using func_t = void( __cdecl* )( VECTOR<STR<64>> );
+
+  func_t func;
+  STR<64> name;
+};
+
+static void __cdecl test_handler( VECTOR<STR<64>> args ) {
+  char buf[512]{};
+
+  for( auto& it : args ) {
+    sprintf( buf, "%s\n%s", buf, it.data );
+  }
+
+  MessageBoxA( 0, buf, "test", 0 );
+}
+
+static CMD_FUNC function = {
+  &test_handler,
+  "test"
+};
+
+static CMD_FUNC* cmd_funcs[] = {
+  &function
+};
 
 extern SETTING_HOLDER settings;
 extern F64  perf_ipt;
@@ -38,7 +63,6 @@ inline U64 hack_calc_perf_metrics( U64 tickrate ) {
   static U64 last_tick;
   U64 tick = u_tick();
 
-  static I64 last_tick_delta;
   static U64 last_tps_tick;
   static U64 tick_counter = 0;
   
@@ -82,6 +106,26 @@ static bool hack_run( PROCESS32* p ) {
   hack_run_glow( csgo );
   hack_run_nightmode( csgo );
   hack_run_clantag( csgo );
+
+  
+  static U32 string_ptr = 0;
+  if( !string_ptr ) {
+    string_ptr = p->code_match( csgo->engine, "B9 ? ? ? ? E8 ? ? ? ? 84 C0 75 0E 68 ? ? ? ? FF 15 ? ? ? ? 83 C4 04 83 05 ? ? ? ? ? 75 04" );
+    string_ptr = p->read<U32>( string_ptr + 1 );
+  }
+    
+  STR<64> buf;
+  p->read( string_ptr, buf, sizeof( buf ) );
+
+  for( U16 i = 0; i < 1; ++i ) {
+    CMD_FUNC* fn = cmd_funcs[i];
+
+    if( strncmp( fn->name.data, buf.data, strlen( fn->name.data ) ) == 0 ) {
+      fn->func( { buf } );
+      p->write<U8>( string_ptr, 0 );
+    }
+  }
+
   
   CSGOPLAYER local = p->read<U32>( localplayer_ptr );
   con_set_bottomline_text(

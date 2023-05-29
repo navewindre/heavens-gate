@@ -32,6 +32,7 @@ extern void hack_run_trigger( CSGO* p );
 extern void hack_run_chams( CSGO* p );
 extern void hack_run_glow( CSGO* p );
 extern void hack_run_nightmode( CSGO* p );
+extern void hack_run_crosshair( CSGO* p );
 extern void hack_run_clantag( CSGO* p );
 extern CSGO* hack_init();
 

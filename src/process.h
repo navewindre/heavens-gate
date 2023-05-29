@@ -290,6 +290,11 @@ public:
     U32 module_size = get_module_size32( module_base );
     if( start < module_base )
       start = module_base;
+
+    U8* module_copy = (U8*)malloc( module_size );
+    read( module_base, module_copy, module_size );
+
+    bool first = true;
     
     for( U64 off = start - module_base; off < module_size; off += mbi.RegionSize ) {
       nt_query_vm64( m_base, module_base + off, MemoryRegionInfo, &mbi, sizeof( mbi ) );
@@ -297,22 +302,19 @@ public:
       if( mbi.State == MEM_FREE )
         continue;
       
-      U8* buffer = (U8*)malloc( (U32)mbi.RegionSize );
-      read( (U32)mbi.BaseAddress, buffer, (U32)mbi.RegionSize );
-
-      for( U32 i = 0; i < mbi.RegionSize - length; ++i ) {
-        if( (U32)mbi.BaseAddress + i < start )
-          continue;
-        
-        if( u_binary_match( buffer + i, bytes, length ) ) {
-          free( buffer );
+      U32 mbi_address = (U32)mbi.BaseAddress - module_base;
+      U32 region_start = first? start - (U32)mbi.BaseAddress : 0;
+      for( U32 i = region_start; i < mbi.RegionSize - length; ++i ) {
+        if( u_binary_match( module_copy + mbi_address + i, bytes, length ) ) {
+          free( module_copy );
           return (U32)mbi.BaseAddress + i;
         }
+
+        first = false;
       }
-      
-      free( buffer );
     }
 
+    free( module_copy );
     return 0;
   }
 

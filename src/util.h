@@ -103,7 +103,7 @@ inline U8 u_set_debug_privilege() {
 
 inline U8 u_binary_match( U8* code, U8* pattern, U32 size ) {
   for( U32 i = 0; i < size; ++i ) {
-    if( pattern[i] && code[i] != pattern[i] )
+    if( pattern[i] && (code[i] ^ pattern[i]) != 0 )
       return 0;
   }
 

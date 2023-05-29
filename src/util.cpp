@@ -27,3 +27,16 @@ ULONG u_thread_create( HANDLE proc, LPTHREAD_START_ROUTINE routine, void* param 
     
   return ret_id; 
 }
+
+void u_sleep( U64 ns ) {
+  static bool resolution_set = false;
+  if( !resolution_set ) {
+    ULONG timer_resolution;
+    nt_set_timer_resolution64( 1, true, &timer_resolution );
+    resolution_set = true;
+  }
+
+  LARGE_INTEGER interval;
+  interval.QuadPart = -1 * ns;
+  nt_delay_execution64( false, &interval );
+}

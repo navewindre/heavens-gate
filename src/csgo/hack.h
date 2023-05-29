@@ -14,15 +14,13 @@
 
 
 extern SETTING_HOLDER settings;
-
 extern F64  perf_ipt;
 extern F64  perf_tps;
+static I64  perf_drift;
+extern U64  perf_tickrate;
 
 const char* const LOCALPLAYER_SIG = "8D 34 85 ? ? ? ? 89 15 ? ? ? ? 8B 41 08 8B 48 04 83 F9 FF";
 const char* const GLOWSTRUCT_SIG  = "A1 ? ? ? ? A8 01 75 4B";
-
-const char* const PITCHCLASS_SIG  = "B9 ? ? ? ? 89 44 24 40";
-const char* const YAWCLASS_SIG    = "8B 44 24 1C 35 ? ? ? ? 89 44 24 14 EB 0D";
 
 extern U32 localplayer_ptr;
 
@@ -35,14 +33,46 @@ extern void hack_run_nightmode( CSGO* p );
 extern void hack_run_clantag( CSGO* p );
 extern CSGO* hack_init();
 
-static bool hack_run( PROCESS32* p ) {
-  static U32 last_tick;
-  
-  struct timespec time;
-  timespec_get( &time, TIME_UTC );
+inline U64 hack_calc_perf_metrics( U64 tickrate ) {
+  static U64 last_tick;
+  U64 tick = u_tick();
 
-  U32 tick = time.tv_nsec;
+  static I64 last_tick_delta;
+  static U64 last_tps_tick;
+  static U64 tick_counter = 0;
   
+  perf_ipt = (tick - last_tick) / (F64)T_SEC; 
+
+  if( tick - last_tps_tick < T_SEC * 0.5 )
+    ++tick_counter;
+  else {
+    perf_tps = (F64)tick_counter * 2;
+    tick_counter = 0;
+    last_tps_tick = tick;
+
+    I64 tick_delta = (I64)tickrate - (I64)perf_tps;
+    F64 tick_ratio = (F64)tick_delta / (F64)( tickrate ) * 10;
+    if( tick_ratio < 1.0 )
+      tick_ratio = 1.0;
+
+    perf_drift += (I64)( 100.0 * tick_ratio ) * ( tick_delta < 0 ? 1 : -1 ); 
+  }
+
+  if( tickrate > 0 ) {
+    U64 delay = (T_SEC / tickrate);
+    u_sleep( delay + perf_drift );
+  }
+  else {
+    u_sleep( 1 );
+  }
+
+  last_tick = tick;
+  return perf_drift;
+}
+
+static bool hack_run( PROCESS32* p ) {
+  hack_calc_perf_metrics( perf_tickrate );
+
   CSGO* csgo = (CSGO*)p;
 
   hack_run_aim( csgo );
@@ -52,18 +82,13 @@ static bool hack_run( PROCESS32* p ) {
   hack_run_nightmode( csgo );
   hack_run_clantag( csgo );
   
-  perf_ipt = (tick - last_tick) * 0.000000001; 
-  perf_tps = 1.0 / perf_ipt;
-
-
   CSGOPLAYER local = p->read<U32>( localplayer_ptr );
   con_set_bottomline_text(
-    "local: 0x%08x | flags: 0x%03x | tps: %.f",
+    "local: 0x%08x | flags: 0x%03x | tps: %.0f",
     local.base,
     local.m_fFlags(),
-    perf_tps
+    (F32)perf_tps
   );
 
-  last_tick = tick;
   return csgo->valid();
 }

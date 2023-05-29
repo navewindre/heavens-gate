@@ -174,6 +174,12 @@ extern NTSTATUS64 nt_query_object64(
   ULONG* return_length
 );
 
+extern NTSTATUS64 nt_set_timer_resolution64(
+  ULONG desired_resolution,
+  BOOLEAN set_resolution,
+  ULONG* current_resolution
+);
+
 inline std::vector< MODULE_EXPORT64 > module_get_exports( U32 module_base, HANDLE proc = (HANDLE)-1 ) {
   std::vector< MODULE_EXPORT64 > ret;
   IMAGE_DOS_HEADER               dos_header;

@@ -90,7 +90,36 @@ void show_page_0() {
     if( action == LINE_ACTION_ENTER ) {
       settings.save();
     }
-    } ); 
+    } );
+
+  con_set_line_text( 2, "perf_tickrate", false );
+  con_set_line_subtext( 2, u_num_to_string_dec( perf_tickrate ), false, CONFG_BLUE );
+  con_set_line_callback( 2, []( CON_LINE* self, U8 action ) {
+    if( action == LINE_ACTION_LEFTARROW ) {
+      if( GetAsyncKeyState( VK_LCONTROL ) & 0x8000 ) {
+        if( perf_tickrate > 10 )
+          perf_tickrate -= 10;
+        else
+          perf_tickrate = 0;
+      } else {
+        if( perf_tickrate > 0 )
+          --perf_tickrate;
+      }
+    }
+    if( action == LINE_ACTION_RIGHTARROW ) {
+      if( GetAsyncKeyState( VK_LCONTROL ) & 0x8000 ) {
+        if( perf_tickrate < 2048 )
+          perf_tickrate += 10;
+        else
+          perf_tickrate = 2048;
+      } else {
+        if( perf_tickrate < 2048 )
+          ++perf_tickrate;
+      }
+    }
+
+    con_set_line_subtext( 2, u_num_to_string_dec( perf_tickrate ), true, CONFG_BLUE );
+  } );
 }
 
 void show_page_1() {

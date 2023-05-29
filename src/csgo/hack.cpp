@@ -20,6 +20,7 @@ SETTING<bool> clantag_active{ &settings, "clantag_active", false };
 
 F64  perf_ipt = .0;
 F64  perf_tps = .0;
+U64  perf_tickrate = 1024;
 
 U32 localplayer_ptr;
 U32 jump_ptr;

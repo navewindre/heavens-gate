@@ -18,7 +18,7 @@ bool run() {
   for( ;; ) {
     if( !hack_run( p ) ) {
       nt_close64( p->get_base() );
-      Sleep( 5000 );
+      u_sleep( 5 * T_SEC );
       break;
     }
   }

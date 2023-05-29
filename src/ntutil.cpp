@@ -283,3 +283,22 @@ NTSTATUS64 nt_query_object64(
   return status;
 }
 
+NTSTATUS64 nt_set_timer_resolution64(
+  ULONG desired_resolution,
+  BOOLEAN set_resolution,
+  ULONG* current_resolution) {
+  static SYSCALL_ENTRY nt_set_timer_resolution = syscall_find_syscall64( "NtSetTimerResolution"fnv );
+  
+  REG64 desired_resolution64 = (U64)desired_resolution;
+  REG64 set_resolution64 = (U64)set_resolution;
+  REG64 current_resolution64 = (U64)current_resolution;
+
+  NTSTATUS64 status = syscall_execute( nt_set_timer_resolution.idx,
+    desired_resolution64,
+    set_resolution64,
+    current_resolution64
+  );
+
+  return status;
+}
+

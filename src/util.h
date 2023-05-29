@@ -2,12 +2,22 @@
 //| | (/_ (_| \/ (/_ | | | | (_| (_ |<
 
 #pragma once
+#include <chrono>
 #include <windows.h>
 #include <stdio.h>
+#include <thread>
+
 #include "typedef.h"
+
+constexpr U64 T_MS = 10000;
+constexpr U64 T_SEC = 1000 * T_MS;
+constexpr U64 T_MIN = 60 * T_SEC;
+constexpr U64 T_HOUR = 60 * T_MIN;
+constexpr U64 T_DAY = 24 * T_HOUR;
 
 extern ULONG u_thread_create( LPTHREAD_START_ROUTINE routine, void* param = 0 );
 extern ULONG u_thread_create( HANDLE proc, LPTHREAD_START_ROUTINE routine, void* param = 0 );
+extern void  u_sleep( U64 ns );
 
 template < U32 size >
 struct STR {
@@ -153,5 +163,15 @@ inline t u_vector_search( VECTOR<t> v, bool( *func)( t* t1 ) ) {
 }
 
 inline U64 u_tick() {
-  return GetTickCount64();
+  static LARGE_INTEGER freq;
+  if( !freq.QuadPart )
+    QueryPerformanceFrequency( &freq );
+
+  LARGE_INTEGER ticks;
+  QueryPerformanceCounter( &ticks );
+
+  constexpr U64 wanted_precision = 10000000;
+  if( wanted_precision == freq.QuadPart )
+    return ticks.QuadPart;
+  return (U64)(ticks.QuadPart / ((double)freq.QuadPart / wanted_precision) );
 }

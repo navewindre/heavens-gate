@@ -64,12 +64,16 @@
     <IntDir>..\intermediate\$(Configuration)\</IntDir>
     <TargetName>heavens-gate</TargetName>
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <IncludePath>$(SolutionDir)/openssl/include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)/openssl/include;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='stripped|Win32'">
     <OutDir>$(SolutionDir)\bin\</OutDir>
     <IntDir>..\intermediate\$(Configuration)\</IntDir>
     <TargetName>heavens-gate</TargetName>
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <IncludePath>$(SolutionDir)/openssl/include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)/openssl/include;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)\bin\</OutDir>
@@ -78,6 +82,8 @@
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
     <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)/openssl/include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)/openssl/lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -85,7 +91,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
       <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;DEBUG 1</PreprocessorDefinitions>
       <CallingConvention>FastCall</CallingConvention>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <NoWarn>4530</NoWarn>
@@ -213,6 +219,7 @@
     <ClInclude Include="csgo\trace.h" />
     <ClInclude Include="disasm.h" />
     <ClInclude Include="fnv.h" />
+    <ClInclude Include="inet.h" />
     <ClInclude Include="mouse.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="setting.h" />

@@ -60,39 +60,31 @@ void hack_run_aim( CSGO* p ) {
 
   F32 m_pitch, m_yaw;
 
-  U32 wep_idx = local.get<U32>( 0x2f08 ) & 0xFFF;
-  CSGOENTITY weapon = CSGOENTITY::from_list( wep_idx - 1 ); 
-
-  // why even run the aimbot if you dont have a valid weapon?
-  if( !wep_idx || !weapon || !weapon.is_weapon() ) {
-    m_yaw = m_pitch = 0.022f;
-
-    U32 m_pitch_xor = ( *reinterpret_cast<U32*>( &m_pitch ) ^ pitch_ptr ),
-    m_yaw_xor       = ( *reinterpret_cast<U32*>( &m_yaw   ) ^ yaw_ptr   );
-    p->write< U32 >( pitch_ptr, m_pitch_xor );
-    p->write< U32 >( yaw_ptr  , m_yaw_xor   );
-
-    return;
-  }
-  
   F32 lowest_dist{ 3.33f };
   U32 closest{};
   for( U32 index{}; index <= 64; ++index ) {
-    CSGOPLAYER player = CSGOENTITY::from_list( index );
-    
+    CSGOPLAYER player = p->read<U32>( p->client + 0x4dfff7c + index * 0x10 );
     if( !aim_check_player( player, p ) )
       continue;
     
     VEC3 local_pos  = local.get<VEC3>( 0x138 ) + local.get<VEC3>( 0x108 );
-    U32 clientstate = p->read<U32>( clientstate_ptr );
-    VEC3 local_view = p->read<VEC3>( clientstate + 0x4D90 );
-    VEC3 target_pos = player.get_bone_pos( 8 );
-    //it's already normalized
+    U32 clientstate = p->read<U32>( p->engine + 0x59f19c );
+    VEC3 local_view = p->read<VEC3>( clientstate + 0x4d90 );
+    
+    U32 bonematrix = p->read<U32>( player.base + 0x26a8 );
+    VEC3 target_pos {
+      p->read<F32>( bonematrix + 0x30 * 8 + 0x0c ),
+      p->read<F32>( bonematrix + 0x30 * 8 + 0x1c ),
+      p->read<F32>( bonematrix + 0x30 * 8 + 0x2c ),
+    };
+
     VEC3 target_ang = vector_angles( local_pos, target_pos );
 
     F32 distance = ( local_view - target_ang ).clamp().length2d();
+
     if( distance > lowest_dist )
       continue;
+    
     lowest_dist = distance;
     closest = player;
   }
@@ -103,10 +95,8 @@ void hack_run_aim( CSGO* p ) {
   m_pitch = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f ),
   m_yaw   = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f );
 
-  U32 m_pitch_xor = ( *reinterpret_cast<U32*>( &m_pitch ) ^ pitch_ptr ),
-  m_yaw_xor       = ( *reinterpret_cast<U32*>( &m_yaw   ) ^ yaw_ptr   );
-  p->write< U32 >( pitch_ptr, m_pitch_xor );
-  p->write< U32 >( yaw_ptr  , m_yaw_xor   ); 
+  convar_set( p, pitch_ptr, m_pitch );
+  convar_set( p,   yaw_ptr, m_yaw   );
 }
 
 void hack_run_bhop( CSGO* p ) {
@@ -512,10 +502,10 @@ CSGO* hack_init() {
 
   pitch_ptr = convar_find( &p, "m_pitch" );
   hack_print_offset( 7, "pitch", pitch_ptr ); progress( .90f );  
-  yaw_ptr   = convar_find( &p, "m_yaw" );
+  yaw_ptr   = 0xdee938 + p.client; // convar_find( &p, "m_yaw" ); <-- how is this wrong 
   hack_print_offset( 8, "yaw", yaw_ptr ); progress( 1.f );
-  ambientmin_ptr = convar_find( &p, "r_modelAmbientMin" );   // do we have 9 & 10 ?
-  tonemap_ptr = convar_find( &p, "mat_force_tonemap_scale" ); // yikes.. no we do nots
+  ambientmin_ptr = convar_find( &p, "r_modelAmbientMin" );
+  tonemap_ptr = convar_find( &p, "mat_force_tonemap_scale" );
   xhair_ptr = convar_find( &p, "cl_crosshair_recoil" );
 
   progress( 1.f );

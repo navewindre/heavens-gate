@@ -43,10 +43,10 @@ bool aim_check_player( CSGOPLAYER player, CSGO* p ) {
     return true; // if player is you
   if( player.get<bool>( 0xed ) )
     return true; // dormant
-  if( player.get<I32>( 0x25f ) )
-    return true; // lifestate
-  if( player.get<I32>( 0x980 ) )
-    return true; // bspottedbymask
+  if( player.m_lifeState( ) )
+    return true;
+  if( player.m_bSpottedByMask( ) )
+    return true;
   return false;
 }
 
@@ -55,10 +55,21 @@ void hack_run_aim( CSGO* p ) {
     return;
   
   CSGOPLAYER local = p->read<U32>( localplayer_ptr );
-  if( local.get<I32>( 0x100 ) < 1 )
+  if( local.m_iHealth( ) < 1 )
     return;
 
   F32 m_pitch, m_yaw;
+
+  U32 wep_idx = local.get<U32>( 0x2f08 ) & 0xFFF; --wep_idx;
+  U32 wep_temp = p->read<U32>( p->client + 0x4dfff7c + wep_idx * 0x10 );
+  I16 wep = p->read<I16>( wep_temp + 0x2fba );
+  if( ( wep >= 41 && wep <= 59 ) || wep >= 64 ||
+        wep == 37 || wep == 20 ) { // https://developer.valvesoftware.com/wiki/Mp_items_prohibited
+    m_pitch = m_yaw = 0.022;
+    convar_set( p, pitch_ptr, m_pitch );
+    convar_set( p,   yaw_ptr, m_yaw   );
+    return;
+  }
 
   F32 lowest_dist{ 3.33f };
   U32 closest{};
@@ -89,8 +100,12 @@ void hack_run_aim( CSGO* p ) {
     closest = player;
   }
 
-  if( !closest )
+  if( !closest ) {
+    m_pitch = m_yaw = 0.022;
+    convar_set( p, pitch_ptr, m_pitch );
+    convar_set( p,   yaw_ptr, m_yaw   );
     return;
+  }
 
   m_pitch = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f ),
   m_yaw   = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f );

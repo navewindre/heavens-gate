@@ -24,97 +24,18 @@ F64  perf_tps = .0;
 U64  perf_tickrate = 1024;
 
 U32 localplayer_ptr;
-U32 jump_ptr;
+U32 ambientmin_ptr;
 U32 attack_ptr;
-U32 glow_ptr;
 U32 clantag_ptr;
 U32 clientstate_ptr;
-
-U32 ambientmin_ptr;
-U32 tonemap_ptr;
+U32 glow_ptr;
+U32 jump_ptr;
 U32 pitch_ptr;
-U32 yaw_ptr;
+U32 tonemap_ptr;
 U32 xhair_ptr;
+U32 yaw_ptr;
 
-bool aim_check_player( CSGOPLAYER player, CSGO* p ) {
-  if( !player )
-    return true; // if no player
-  if( player.base == p->read<U32>( localplayer_ptr ) )
-    return true; // if player is you
-  if( player.get<bool>( 0xed ) )
-    return true; // dormant
-  if( player.m_lifeState( ) )
-    return true;
-  if( player.m_bSpottedByMask( ) )
-    return true;
-  return false;
-}
-
-void hack_run_aim( CSGO* p ) {
-  if( !aim_active )
-    return;
-  
-  CSGOPLAYER local = p->read<U32>( localplayer_ptr );
-  if( local.m_iHealth( ) < 1 )
-    return;
-
-  F32 m_pitch, m_yaw;
-
-  U32 wep_idx = local.get<U32>( 0x2f08 ) & 0xFFF; --wep_idx;
-  U32 wep_temp = p->read<U32>( p->client + 0x4dfff7c + wep_idx * 0x10 );
-  I16 wep = p->read<I16>( wep_temp + 0x2fba );
-  if( ( wep >= 41 && wep <= 59 ) || wep >= 64 ||
-        wep == 37 || wep == 20 ) { // https://developer.valvesoftware.com/wiki/Mp_items_prohibited
-    m_pitch = m_yaw = 0.022;
-    convar_set( p, pitch_ptr, m_pitch );
-    convar_set( p,   yaw_ptr, m_yaw   );
-    return;
-  }
-
-  F32 lowest_dist{ 3.33f };
-  U32 closest{};
-  for( U32 index{}; index <= 64; ++index ) {
-    CSGOPLAYER player = p->read<U32>( p->client + 0x4dfff7c + index * 0x10 );
-    if( !aim_check_player( player, p ) )
-      continue;
-    
-    VEC3 local_pos  = local.get<VEC3>( 0x138 ) + local.get<VEC3>( 0x108 );
-    U32 clientstate = p->read<U32>( p->engine + 0x59f19c );
-    VEC3 local_view = p->read<VEC3>( clientstate + 0x4d90 );
-    
-    U32 bonematrix = p->read<U32>( player.base + 0x26a8 );
-    VEC3 target_pos {
-      p->read<F32>( bonematrix + 0x30 * 8 + 0x0c ),
-      p->read<F32>( bonematrix + 0x30 * 8 + 0x1c ),
-      p->read<F32>( bonematrix + 0x30 * 8 + 0x2c ),
-    };
-
-    VEC3 target_ang = vector_angles( local_pos, target_pos );
-
-    F32 distance = ( local_view - target_ang ).clamp().length2d();
-
-    if( distance > lowest_dist )
-      continue;
-    
-    lowest_dist = distance;
-    closest = player;
-  }
-
-  if( !closest ) {
-    m_pitch = m_yaw = 0.022;
-    convar_set( p, pitch_ptr, m_pitch );
-    convar_set( p,   yaw_ptr, m_yaw   );
-    return;
-  }
-
-  m_pitch = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f ),
-  m_yaw   = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f );
-
-  convar_set( p, pitch_ptr, m_pitch );
-  convar_set( p,   yaw_ptr, m_yaw   );
-}
-
-void hack_run_bhop( CSGO* p ) {
+void hack_run_bhop( CSGO* p ) { // add functionality to work off of ladders
   if( !bhop_active || !( GetAsyncKeyState( VK_SPACE ) & 0x8000 ) ) 
     return;
 

@@ -54,12 +54,14 @@ public:
   OFFSET( m_dwBoneMatrix, "m_nForceBone", "DT_BaseAnimating", U32, 28 );
 
   static CSGOENTITY from_list( I32 idx ) {
-    static U32 entlist = csgop->code_match(
-      csgop->client, "BB ? ? ? ? 83 FF 01 0F 8C ? ? ? ? 3B F8"
+    static U32 entlist = csgop->read<U32>(
+      csgop->code_match(
+        csgop->client, "BB ? ? ? ? 83 FF 01 0F 8C ? ? ? ? 3B F8"
+      ) + 1
     );
-    
+
     return csgop->read<U32>(
-      csgop->client + entlist + idx * 0x10
+      entlist + idx * 0x10
     );
   }
 

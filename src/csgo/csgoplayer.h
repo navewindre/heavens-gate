@@ -20,6 +20,7 @@ public:
   }
 
   NETVAR( m_bSpottedByMask, "DT_BaseEntity", I32       );
+  NETVAR( m_hActiveWeapon , "DT_BasePlayer", U32       );
   NETVAR( m_iHealth       , "DT_BasePlayer", I32       );
   NETVAR( m_lifeState     , "DT_CSPlayer"  , I32       );
   NETVAR( m_iTeamNum      , "DT_CSPlayer"  , I32       );

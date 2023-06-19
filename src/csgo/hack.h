@@ -48,6 +48,9 @@ const char* const LOCALPLAYER_SIG = "8D 34 85 ? ? ? ? 89 15 ? ? ? ? 8B 41 08 8B 
 const char* const GLOWSTRUCT_SIG  = "A1 ? ? ? ? A8 01 75 4B";
 
 extern U32 localplayer_ptr;
+extern U32 clientstate_ptr;
+extern U32 pitch_ptr;
+extern U32 yaw_ptr;
 
 extern void hack_run_aim( CSGO* p );
 extern void hack_run_bhop( CSGO* p );

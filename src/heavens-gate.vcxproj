@@ -199,6 +199,7 @@
     <ClCompile Include="conin.cpp" />
     <ClCompile Include="csgo\csgoentity.cpp" />
     <ClCompile Include="csgo\hack.cpp" />
+    <ClCompile Include="csgo\hack_aim.cpp" />
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="ntutil.cpp" />
     <ClCompile Include="setting.cpp" />

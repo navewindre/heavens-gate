@@ -11,9 +11,14 @@
     <ClCompile Include="ntutil.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="csgo\csgoentity.cpp" />
-    <ClCompile Include="csgo\hack.cpp" />
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="setting.cpp" />
+    <ClCompile Include="csgo\hack.cpp">
+      <Filter>Hack</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\hack_aim.cpp">
+      <Filter>Hack</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="typedef.h" />
@@ -53,7 +58,6 @@
     <ClInclude Include="csgo\csgo.h" />
     <ClInclude Include="csgo\csgoentity.h" />
     <ClInclude Include="csgo\csgoplayer.h" />
-    <ClInclude Include="csgo\hack.h" />
     <ClInclude Include="csgo\interface.h" />
     <ClInclude Include="csgo\materialsystem.h" />
     <ClInclude Include="csgo\netvar.h" />
@@ -63,7 +67,11 @@
     <ClInclude Include="mouse.h" />
     <ClInclude Include="vec3.h" />
     <ClInclude Include="csgo\convar.h" />
-    <ClInclude Include="csgo\csgoutil.h" />
+    <ClInclude Include="csgo\trace.h" />
+    <ClInclude Include="inet.h" />
+    <ClInclude Include="csgo\hack.h">
+      <Filter>Hack</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Console">

@@ -48,7 +48,7 @@ void hack_run_aim( CSGO* p ) {
     if( !aim_check_player( player, p ) )
       continue;
     
-    VEC3 local_pos  = local.get<VEC3>( 0x138 ) + local.get<VEC3>( 0x108 );
+    VEC3 local_pos  = local.m_vecOrigin( ) + local.m_vecViewOffset( );
     VEC3 local_view = p->read<VEC3>( clientstate_ptr + 0x4d90 );
     // could replace this magic number with pattern, but is it worth it ?
 

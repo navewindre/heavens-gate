@@ -67,7 +67,8 @@ public:
 
   bool is_weapon() {
     CSGO_CLIENT_CLASS cl = get_clientclass();
-    return cl.index >= CWeaponAug && cl.index <= CWeaponXM1014;
+    return ( cl.index >= CWeaponAug && cl.index <= CWeaponXM1014 )
+          || cl.index == 1; // for ak
   }
   
 public:

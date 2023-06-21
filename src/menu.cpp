@@ -127,6 +127,7 @@ void show_page_1() {
   static SETTING<bool>& chams_active = *settings.find<bool>( "chams_active"fnv );
   static SETTING<bool>& glow_active = *settings.find<bool>( "glow_active"fnv );
   static SETTING<bool>& nightmode_active = *settings.find<bool>( "nightmode_active"fnv );
+  static SETTING<bool>& noflash_active = *settings.find<bool>( "noflash_active"fnv );
   static SETTING<bool>& clantag_active = *settings.find<bool>( "clantag_active"fnv );
 
   con_set_line_text( 0,"bhop",false );
@@ -202,39 +203,43 @@ void show_page_1() {
     );
     });
 
-  con_set_line_text( 4, "clantag changer" );
+  con_set_line_text( 4, "no flash", false );
   con_set_line_subtext(
     4,
+    noflash_active? "[on]" : "[off]",
+    false,
+    noflash_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+  );
+
+  con_set_line_callback( 4, []( CON_LINE *self,U8 action ) {
+    noflash_active = !noflash_active;
+    con_set_line_subtext(
+      4,
+      noflash_active? "[on]" : "[off]",
+      self->active,
+      noflash_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+    );
+    });
+
+  con_set_line_text( 5, "clantag changer" );
+  con_set_line_subtext(
+    5,
     clantag_active? "[on]" : "[off]",
     false,
     glow_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
   );
 
-  con_set_line_callback( 4, []( CON_LINE* self, U8 action ) {
+  con_set_line_callback( 5, []( CON_LINE* self, U8 action ) {
     clantag_active = !clantag_active;
     con_set_line_subtext(
-      4,
+      5,
       clantag_active? "[on]" : "[off]",
       self->active,
       clantag_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
     ); 
     } );
 
-  con_set_line_text( 5, "dump all classes to classes.dump", false );
-  con_set_line_subtext(
-    5,
-    key_titles[VK_RETURN],
-    false,
-    CONFG_LIGHTBLUE
-  );
-
-  con_set_line_callback( 5, []( CON_LINE*, U8 action ) {
-    if( action == LINE_ACTION_ENTER )
-      csgo_dump_classes( csgop );
-    } ); 
-
-
-  con_set_line_text( 6, "dump syscalls to syscall_arch.dump", false );
+  con_set_line_text( 6, "dump all classes to classes.dump", false );
   con_set_line_subtext(
     6,
     key_titles[VK_RETURN],
@@ -244,10 +249,11 @@ void show_page_1() {
 
   con_set_line_callback( 6, []( CON_LINE*, U8 action ) {
     if( action == LINE_ACTION_ENTER )
-      syscall_dump_to_file();
-    } );
+      csgo_dump_classes( csgop );
+    } ); 
 
-  con_set_line_text( 7, "dump interfaces to interfaces.dump", false );
+
+  con_set_line_text( 7, "dump syscalls to syscall_arch.dump", false );
   con_set_line_subtext(
     7,
     key_titles[VK_RETURN],
@@ -256,6 +262,19 @@ void show_page_1() {
   );
 
   con_set_line_callback( 7, []( CON_LINE*, U8 action ) {
+    if( action == LINE_ACTION_ENTER )
+      syscall_dump_to_file();
+    } );
+
+  con_set_line_text( 8, "dump interfaces to interfaces.dump", false );
+  con_set_line_subtext(
+    8,
+    key_titles[VK_RETURN],
+    false,
+    CONFG_LIGHTBLUE
+  );
+
+  con_set_line_callback( 8, []( CON_LINE*, U8 action ) {
     if( action == LINE_ACTION_ENTER )
       csgo_dump_ifaces_to_file( csgop );
     } );

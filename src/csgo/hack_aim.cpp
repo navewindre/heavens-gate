@@ -34,7 +34,7 @@ void hack_run_aim( CSGO* p ) {
   );
 
   if( !wep.is_weapon( ) ) {
-    m_pitch = m_yaw = 0.022;
+    m_pitch = m_yaw = 0.022f;
     convar_set( p, pitch_ptr, m_pitch );
     convar_set( p,   yaw_ptr, m_yaw   );
     return;
@@ -65,7 +65,7 @@ void hack_run_aim( CSGO* p ) {
   }
 
   if( !closest ) {
-    m_pitch = m_yaw = 0.022;
+    m_pitch = m_yaw = 0.022f;
     convar_set( p, pitch_ptr, m_pitch );
     convar_set( p,   yaw_ptr, m_yaw   );
     return;

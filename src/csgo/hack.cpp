@@ -16,6 +16,7 @@ SETTING<bool> bhop_active{ &settings, "bhop_active", true };
 SETTING<bool> chams_active{ &settings, "chams_active", false };
 SETTING<bool> glow_active{ &settings, "glow_active", false };
 SETTING<bool> nightmode_active{ &settings, "nightmode_active", false };
+SETTING<bool> noflash_active{ &settings, "noflash_active", false };
 SETTING<bool> crosshair_active{ &settings, "crosshair_active", false };
 SETTING<bool> clantag_active{ &settings, "clantag_active", false };
 
@@ -45,7 +46,7 @@ void hack_run_bhop( CSGO* p ) { // add functionality to work off of ladders
   CSGOPLAYER player = p->read<U32>( localplayer_ptr );
   if( !player )
     return;
-  
+
   I32  player_flags = player.m_fFlags();
   bool air = !( player_flags & 1 << 0 );
 
@@ -156,6 +157,17 @@ void hack_run_nightmode( CSGO* p ) {
     
     convar_set<float>( p, tonemap_ptr, nightmode_active ? 0.1f + delta * 0.9f : 1.0f - delta * 0.9f );
   }
+}
+
+void hack_run_noflash( CSGO* p ) {
+  if( !noflash_active )
+    return;
+
+  assert( !!localplayer_ptr );
+
+  CSGOPLAYER player = p->read<U32>( localplayer_ptr );
+  if( player )
+    player.m_flFlashDuration( 0.f );
 }
 
 void hack_run_crosshair( CSGO* p ) {

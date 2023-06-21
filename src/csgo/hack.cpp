@@ -166,8 +166,11 @@ void hack_run_noflash( CSGO* p ) {
   assert( !!localplayer_ptr );
 
   CSGOPLAYER player = p->read<U32>( localplayer_ptr );
-  if( player )
-    player.m_flFlashDuration( 0.f );
+  if( !player )
+    return;
+  
+  if( player.m_flFlashMaxAlpha( ) > 0.f )
+    player.m_flFlashMaxAlpha( 0.f );
 }
 
 void hack_run_crosshair( CSGO* p ) {

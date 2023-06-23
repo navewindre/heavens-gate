@@ -36,6 +36,36 @@ U32 tonemap_ptr;
 U32 xhair_ptr;
 U32 yaw_ptr;
 
+// definitely relocate to its own file
+void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
+  char buf[512]{};
+  std::string cmd; int idx = 0;
+  for( auto& it : args ) {
+    sprintf( buf, "%s\n%s", buf, it.data );
+    cmd += it.data;
+  }
+  // if command incorrect, or when toggled, FWA to ig con ( Valve001 )
+  // and say that command was invalid w/ echo
+  if( !strncmp( cmd.c_str( ), "hg_bhop", 7 ) ) {
+    bhop_active = !bhop_active;
+    con_set_line_subtext(
+      0,
+      bhop_active? "[on]" : "[off]",
+      con_selected_line == 0,
+      bhop_active? 10 : 12
+    );
+  } else if( !strncmp( cmd.c_str( ), "hg_chams", 8 ) ) {
+    chams_active = !chams_active;
+    con_set_line_subtext(
+      1,
+      chams_active? "[on]" : "[off]",
+      con_selected_line == 1,
+      chams_active? 10 : 12
+    );
+  }
+  return;
+}
+
 void hack_run_bhop( CSGO* p ) { // add functionality to work off of ladders
   if( !bhop_active || !( GetAsyncKeyState( VK_SPACE ) & 0x8000 ) ) 
     return;
@@ -146,7 +176,6 @@ void hack_run_nightmode( CSGO* p ) {
     anim_end = time + anim_time;
     
     prev_active = nightmode_active;
-    hack_run_chams( p );
   }
 
   F32 time = (F32)u_tick() / T_SEC;

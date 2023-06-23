@@ -14,28 +14,18 @@
 
 struct CMD_FUNC {
   using func_t = void( __cdecl* )( VECTOR<STR<64>> );
-
   func_t func;
   STR<64> name;
 };
 
-static void __cdecl test_handler( VECTOR<STR<64>> args ) {
-  char buf[512]{};
-
-  for( auto& it : args ) {
-    sprintf( buf, "%s\n%s", buf, it.data );
-  }
-
-  MessageBoxA( 0, buf, "test", 0 );
-}
-
-static CMD_FUNC function = {
-  &test_handler,
-  "test"
+void __cdecl game_hack_toggle( VECTOR<STR<64>> args );
+static CMD_FUNC g_hack_toggle = {
+  &game_hack_toggle,
+  "hg_"
 };
 
 static CMD_FUNC* cmd_funcs[] = {
-  &function
+  &g_hack_toggle,
 };
 
 extern SETTING_HOLDER settings;
@@ -107,6 +97,7 @@ static bool hack_run( PROCESS32* p ) {
   hack_run_aim( csgo );
   hack_run_bhop( csgo );
   hack_run_trigger( csgo );
+  hack_run_chams( csgo );
   hack_run_glow( csgo );
   hack_run_nightmode( csgo );
   hack_run_noflash( csgo );

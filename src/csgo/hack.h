@@ -101,6 +101,7 @@ static bool hack_run( PROCESS32* p ) {
   hack_run_glow( csgo );
   hack_run_nightmode( csgo );
   hack_run_noflash( csgo );
+  hack_run_crosshair( csgo );
   hack_run_clantag( csgo );
 
   

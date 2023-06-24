@@ -8,17 +8,7 @@
 
 CSGO* csgop;
 
-const I8 MENU_PAGE_MIN = 0;
-const I8 MENU_PAGE_MAX = 2;
 I8 menu_page = 1;
-
-typedef void(*CON_PAGE_FN)();
-
-struct MENU_PAGE {
-  const char* name;
-  CON_PAGE_FN page_fn;
-};
-
 MENU_PAGE menu_pages[MENU_PAGE_MAX - MENU_PAGE_MIN + 1];
 
 void show_paging( U8 num ) {
@@ -312,7 +302,6 @@ void show_page_2() {
 
   con_set_line_callback( 1, []( CON_LINE *self,U8 action ) {
     crosshair_active = !crosshair_active;
-    hack_run_crosshair( csgop );
     con_set_line_subtext(
       1,
       crosshair_active? "[on]" : "[off]",

@@ -19,6 +19,7 @@
     <ClCompile Include="csgo\hack_aim.cpp">
       <Filter>Hack</Filter>
     </ClCompile>
+    <ClCompile Include="csgo\console.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="typedef.h" />

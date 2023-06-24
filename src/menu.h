@@ -68,4 +68,17 @@ static void csgo_dump_ifaces_to_file( CSGO* p ) {
   fclose( dump ); 
 }
 
+void show_paging( U8 num );
+
+typedef void(*CON_PAGE_FN)();
+
+struct MENU_PAGE {
+  const char* name;
+  CON_PAGE_FN page_fn;
+};
+
+const I8 MENU_PAGE_MIN = 0;
+const I8 MENU_PAGE_MAX = 2;
+extern MENU_PAGE menu_pages[MENU_PAGE_MAX - MENU_PAGE_MIN + 1];
+
 extern void menu_show_ui( PROCESS32* p );

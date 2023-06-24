@@ -197,6 +197,7 @@
   <ItemGroup>
     <ClCompile Include="conout.cpp" />
     <ClCompile Include="conin.cpp" />
+    <ClCompile Include="csgo\console.cpp" />
     <ClCompile Include="csgo\csgoentity.cpp" />
     <ClCompile Include="csgo\hack.cpp" />
     <ClCompile Include="csgo\hack_aim.cpp" />

@@ -36,66 +36,6 @@ U32 tonemap_ptr;
 U32 xhair_ptr;
 U32 yaw_ptr;
 
-// definitely relocate this function to its own file
-// obviously include hack.h and anything else needed
-void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
-  char buf[512]{};
-  std::string cmd;
-  int idx = 0;
-
-  for( auto& it : args ) {
-    sprintf( buf, "%s\n%s", buf, it.data );
-    cmd += it.data;
-  }
-
-  if( !strncmp( cmd.c_str( ), "hg_bhop", 7 ) ) {
-    bhop_active = !bhop_active;
-    con_set_line_subtext(
-      0,
-      bhop_active? "[on]" : "[off]",
-      con_selected_line == 0,
-      bhop_active? 10 : 12
-    );
-  } else if( !strncmp( cmd.c_str( ), "hg_chams", 8 ) ) {
-    chams_active = !chams_active;
-    con_set_line_subtext(
-      1,
-      chams_active? "[on]" : "[off]",
-      con_selected_line == 1,
-      chams_active? 10 : 12
-    );
-  } // do the rest of the features
-  // maybe make the cmds a macro since it repeats so much ?
-  else if( !strncmp( cmd.c_str( ), "hg_help", 7 ) ) {
-    const HWND hconsole = FindWindowA( "Valve001", 0 );
-    if( !hconsole )
-      return;
-    // COPYDATASTRUCT ;
-    /*
-      set up several commands 1 by 1 to print out
-      only because we cant print multiline with echo
-      it caused "unknown command: hg_chams" to be
-      output instead of my "cmd : toggles _" format
-      
-      maybe just *maybe* macro this too for ease of..
-      my eyes ?
-    */
-  } else {
-   const HWND hconsole = FindWindowA( "Valve001", 0 );
-   if( !hconsole )
-     return;
-   COPYDATASTRUCT hconsole_out;
-   hconsole_out.cbData = strlen( "echo \"invalid cmd, use \'hg_help\' for cmd list\"" ) + 1;
-   hconsole_out.dwData = 0;
-   hconsole_out.lpData = ( void* )"echo \"invalid cmd, use \'hg_help\' for cmd list\"";
-   SendMessageA( hconsole,
-     WM_COPYDATA, 0,
-     ( LPARAM )&hconsole_out
-   );
-  }
-  return;
-}
-
 void hack_run_bhop( CSGO* p ) { // add functionality to work off of ladders
   if( !bhop_active || !( GetAsyncKeyState( VK_SPACE ) & 0x8000 ) ) 
     return;

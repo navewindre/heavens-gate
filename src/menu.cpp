@@ -273,6 +273,7 @@ void show_page_2() {
   static SETTING<bool>& aim_active = *settings.find<bool>( "aim_active"fnv );
   static SETTING<bool>& crosshair_active = *settings.find<bool>( "crosshair_active"fnv );
   static SETTING<I32>& triggerbot_key = *settings.find<I32>( "triggerbot_key"fnv );
+  static SETTING<bool>& triggerteam_active = *settings.find<bool>( "triggerteam_active"fnv );
 
   con_set_line_text( 0,"aim assist",false );
   con_set_line_subtext(
@@ -323,6 +324,24 @@ void show_page_2() {
       con_update_hotkey( 2, triggerbot_key.v );
     }
     } );
+
+  con_set_line_text( 3, "trigger team", false );
+  con_set_line_subtext(
+    3,
+    triggerteam_active? "[on]" : "[off]",
+    false,
+    triggerteam_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+  );
+
+  con_set_line_callback( 3, []( CON_LINE *self,U8 action ) {
+    triggerteam_active = !triggerteam_active;
+    con_set_line_subtext(
+      3,
+      triggerteam_active? "[on]" : "[off]",
+      self->active,
+      triggerteam_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+    );
+    });
 }
 
 void menu_show_ui( PROCESS32 *p ) {

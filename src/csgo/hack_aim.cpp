@@ -23,11 +23,15 @@ void hack_run_aim( CSGO* p ) {
   if( !aim_active )
     return;
   
-  CSGOPLAYER local = p->read<U32>( localplayer_ptr );
-  if( local.m_iHealth( ) < 1 )
-    return;
-
   F32 m_pitch, m_yaw;
+
+  CSGOPLAYER local = p->read<U32>( localplayer_ptr );
+  if( local.m_iHealth( ) < 1 || !local ) {
+    m_pitch = m_yaw = 0.022f;
+    convar_set( p, pitch_ptr, m_pitch );
+    convar_set( p,   yaw_ptr, m_yaw   );
+    return;
+  }
 
   CSGOENTITY wep = CSGOENTITY::from_list(
     ( ( local.m_hActiveWeapon( ) & 0xFFF ) - 1 )
@@ -40,7 +44,7 @@ void hack_run_aim( CSGO* p ) {
     return;
   }
 
-  F32 lowest_dist{ 3.33f };
+  F32 lowest_dist{ 2.f };
   U32 closest{ };
   for( U32 index{}; index <= 64; ++index ) {
     CSGOPLAYER player = CSGOENTITY::from_list( index );
@@ -51,8 +55,11 @@ void hack_run_aim( CSGO* p ) {
     VEC3 local_pos  = local.m_vecOrigin( ) + local.m_vecViewOffset( );
     VEC3 local_view = p->read<VEC3>( clientstate_ptr + 0x4d90 );
     // could replace this magic number with pattern, but is it worth it ?
-
-    VEC3 target_pos = player.get_bone_pos( 8 );
+    VEC3 target_pos;
+    if( wep.get_clientclass( ).index == CWeaponAWP )
+      target_pos = player.get_bone_pos( 6 );
+    else
+      target_pos = player.get_bone_pos( 8 );
     VEC3 target_ang = vector_angles( local_pos, target_pos );
 
     F32 distance = ( local_view - target_ang ).clamp().length2d();
@@ -64,7 +71,7 @@ void hack_run_aim( CSGO* p ) {
     closest = player;
   }
 
-  if( !closest ) {
+  if( !closest || lowest_dist == 2.f ) {
     m_pitch = m_yaw = 0.022f;
     convar_set( p, pitch_ptr, m_pitch );
     convar_set( p,   yaw_ptr, m_yaw   );

@@ -19,7 +19,7 @@ public:
     };
   }
 
-  NETVAR( m_bSpottedByMask, "DT_BaseEntity", I32       );
+  NETVAR( m_bSpottedByMask , "DT_BaseEntity", I32       );
 
   NETVAR( m_hActiveWeapon  , "DT_BasePlayer", U32       );
   NETVAR( m_iHealth        , "DT_BasePlayer", I32       );

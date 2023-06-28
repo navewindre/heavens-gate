@@ -50,8 +50,9 @@ public:
   }
   
   NETVAR( m_fFlags, "DT_CSPlayer", I32 );
-  OFFSET( m_iCrosshairID, "m_bHasDefuser", "DT_CSPlayer", I32, 92 );
-  OFFSET( m_dwBoneMatrix, "m_nForceBone", "DT_BaseAnimating", U32, 28 );
+  OFFSET( m_MoveType    , "m_nRenderMode", "DT_CSPlayer"     , I32, 1  );
+  OFFSET( m_iCrosshairID, "m_bHasDefuser", "DT_CSPlayer"     , I32, 92 );
+  OFFSET( m_dwBoneMatrix,  "m_nForceBone", "DT_BaseAnimating", U32, 28 );
 
   static CSGOENTITY from_list( I32 idx ) {
     static U32 entlist = csgop->read<U32>(
@@ -70,7 +71,7 @@ public:
     return ( cl.index >= CWeaponAug && cl.index <= CWeaponXM1014 )
           || cl.index == CAK47 || cl.index == CDEagle;
   }
-  
+
 public:
   U32 base;
 };

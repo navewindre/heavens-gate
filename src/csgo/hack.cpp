@@ -11,6 +11,7 @@
 
 SETTING_HOLDER settings;
 SETTING<I32>  triggerbot_key{ &settings, "triggerbot_key", 0x6 };
+SETTING<bool> triggerteam_active{ &settings, "triggerteam_active", false };
 SETTING<bool> aim_active{ &settings, "aim_active", false };
 SETTING<bool> bhop_active{ &settings, "bhop_active", true };
 SETTING<bool> chams_active{ &settings, "chams_active", false };
@@ -49,9 +50,11 @@ void hack_run_bhop( CSGO* p ) { // add functionality to work off of ladders
 
   I32  player_flags = player.m_fFlags();
   bool air = !( player_flags & 1 << 0 );
-
-  if( !air )
+  
+  if( !air || player.m_MoveType( ) == 9 )
     p->write<I32>( jump_ptr, 6 );
+  else
+    p->write<I32>( jump_ptr, 4 );
 }
 
 void hack_run_trigger( CSGO* p ) {
@@ -61,8 +64,13 @@ void hack_run_trigger( CSGO* p ) {
   assert( !!localplayer_ptr );
   assert( !!attack_ptr );
 
-  CSGOPLAYER player = p->read<U32>( localplayer_ptr );
-  I32 crosshairid   = player.m_iCrosshairID();
+  CSGOPLAYER local = p->read<U32>( localplayer_ptr );
+  I32 crosshairid   = local.m_iCrosshairID();
+
+  CSGOPLAYER t_player = CSGOENTITY::from_list( crosshairid - 1 );
+  if( t_player.m_iTeamNum( ) == local.m_iTeamNum( ) && !triggerteam_active )
+    return;
+
   if( crosshairid > 0 && crosshairid < 65 )
     p->write< I32 >( attack_ptr, 6 );
 }

@@ -14,7 +14,7 @@ bool aim_check_player( CSGOPLAYER player, CSGO* p ) {
     return true; // dormant
   if( player.m_lifeState( ) )
     return true;
-  if( player.m_bSpottedByMask( ) )
+  if( !player.m_bSpottedByMask( ) )
     return true;
   return false;
 }
@@ -49,7 +49,7 @@ void hack_run_aim( CSGO* p ) {
   for( U32 index{}; index <= 64; ++index ) {
     CSGOPLAYER player = CSGOENTITY::from_list( index );
 
-    if( !aim_check_player( player, p ) )
+    if( aim_check_player( player, p ) )
       continue;
     
     VEC3 local_pos  = local.m_vecOrigin( ) + local.m_vecViewOffset( );

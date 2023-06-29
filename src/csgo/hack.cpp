@@ -13,6 +13,7 @@ SETTING_HOLDER settings;
 SETTING<I32>  triggerbot_key{ &settings, "triggerbot_key", 0x6 };
 SETTING<bool> triggerteam_active{ &settings, "triggerteam_active", false };
 SETTING<bool> aim_active{ &settings, "aim_active", false };
+SETTING<bool> rcs_active{ &settings, "rcs_active", false };
 SETTING<bool> bhop_active{ &settings, "bhop_active", true };
 SETTING<bool> chams_active{ &settings, "chams_active", false };
 SETTING<bool> glow_active{ &settings, "glow_active", false };
@@ -267,6 +268,48 @@ void hack_run_clantag( CSGO* csgo ) {
 
     hack_setclantag( csgo, (const char*)( clantag[counter] ) );
     last_tick = tick;
+  }
+}
+
+void hack_run_recoil( CSGO* p ) {
+  if( !rcs_active )
+    return;
+
+  assert( !!localplayer_ptr );
+  assert( !!clientstate_ptr );
+
+  CSGOPLAYER local = p->read<U32>( localplayer_ptr );
+  if( !local )
+    return;
+
+  CSGOENTITY wep = CSGOENTITY::from_list(
+    ( ( local.m_hActiveWeapon( ) & 0xFFF ) - 1 )
+  );
+  if( !wep.is_weapon( ) )
+    return;
+
+  static VEC3 last_punch;
+
+  if( local.m_iShotsFired( ) ) {
+    VEC3 local_view = p->read<VEC3>( clientstate_ptr + 0x4d90 );
+    VEC3  rcs_angle = {
+      local_view.x + last_punch.x - local.m_aimPunchAngle( ).x * 2.f,
+      local_view.y + last_punch.y - local.m_aimPunchAngle( ).y * 2.f,
+      0.f
+    };
+
+    p->write<VEC3>( clientstate_ptr + 0x4d90, rcs_angle.clamp( ) );
+
+    last_punch = {
+      local.m_aimPunchAngle( ).x * 2.f,
+      local.m_aimPunchAngle( ).y * 2.f,
+      0.f
+    };
+  } else {
+    last_punch = {
+      0.f, 0.f, 0.f
+    };
+    return;
   }
 }
 

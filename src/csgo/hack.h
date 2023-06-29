@@ -44,13 +44,14 @@ extern U32 yaw_ptr;
 
 extern void hack_run_aim( CSGO* p );
 extern void hack_run_bhop( CSGO* p );
-extern void hack_run_trigger( CSGO* p );
 extern void hack_run_chams( CSGO* p );
+extern void hack_run_clantag( CSGO* p );
+extern void hack_run_crosshair( CSGO* p );
 extern void hack_run_glow( CSGO* p );
 extern void hack_run_nightmode( CSGO* p );
 extern void hack_run_noflash( CSGO* p );
-extern void hack_run_crosshair( CSGO* p );
-extern void hack_run_clantag( CSGO* p );
+extern void hack_run_recoil( CSGO* p );
+extern void hack_run_trigger( CSGO* p );
 extern CSGO* hack_init();
 
 inline U64 hack_calc_perf_metrics( U64 tickrate ) {
@@ -97,6 +98,7 @@ static bool hack_run( PROCESS32* p ) {
   hack_run_aim( csgo );
   hack_run_bhop( csgo );
   hack_run_trigger( csgo );
+  hack_run_recoil( csgo );
   hack_run_chams( csgo );
   hack_run_glow( csgo );
   hack_run_nightmode( csgo );

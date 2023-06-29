@@ -41,6 +41,7 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
 
   static SETTING<bool>& aim_active = *settings.find<bool>( "aim_active"fnv );
   static SETTING<bool>& crosshair_active = *settings.find<bool>( "crosshair_active"fnv );
+  static SETTING<bool>& rcs_active = *settings.find<bool>( "rcs_active"fnv );
   static SETTING<bool>& triggerteam_active = *settings.find<bool>( "triggerteam_active"fnv );
 
   char buf[512]{};
@@ -66,8 +67,10 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
     hack_toggle( 0, aim_active, 2 );
   else if( gcon_match( "hg_xhair" ) )
     hack_toggle( 1, crosshair_active, 2 );
+  else if( gcon_match( "hg_rcs" ) )
+    hack_toggle( 2, rcs_active, 2 );
   else if( gcon_match( "hg_triggerteam" ) )
-    hack_toggle( 3, triggerteam_active, 2 );
+    hack_toggle( 4, triggerteam_active, 2 );
   else if( gcon_match( "hg_help" ) ) {
     const HWND hconsole = FindWindowA( "Valve001", 0 );
 
@@ -82,6 +85,7 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
     gcon_var( flash, "echo \"hg_flash       : toggles no flash\"" );
     gcon_var( glow , "echo \"hg_glow        : toggles glow\"" );
     gcon_var( night, "echo \"hg_night       : toggles nightmode\"" );
+    gcon_var( rcs  , "echo \"hg_rcs         : toggles standalone rcs\"" );
     gcon_var( trigg, "echo \"hg_triggerteam : toggles team triggerbot\"" );
     gcon_var( xhair, "echo \"hg_xhair       : toggles recoil crosshair\"" );
     

@@ -272,6 +272,7 @@ void show_page_1() {
 void show_page_2() {
   static SETTING<bool>& aim_active = *settings.find<bool>( "aim_active"fnv );
   static SETTING<bool>& crosshair_active = *settings.find<bool>( "crosshair_active"fnv );
+  static SETTING<bool>& rcs_active = *settings.find<bool>( "rcs_active"fnv );
   static SETTING<I32>& triggerbot_key = *settings.find<I32>( "triggerbot_key"fnv );
   static SETTING<bool>& triggerteam_active = *settings.find<bool>( "triggerteam_active"fnv );
 
@@ -311,32 +312,50 @@ void show_page_2() {
     );
     });
 
-  con_set_line_text( 2, "triggerbot", false);
+  con_set_line_text( 2, "rcs", false );
   con_set_line_subtext(
     2,
+    rcs_active? "[on]" : "[off]",
+    false,
+    rcs_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+  );
+
+  con_set_line_callback( 2, []( CON_LINE *self,U8 action ) {
+    rcs_active = !rcs_active;
+    con_set_line_subtext(
+      2,
+      rcs_active? "[on]" : "[off]",
+      self->active,
+      rcs_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+    );
+    });
+
+  con_set_line_text( 3, "triggerbot", false );
+  con_set_line_subtext(
+    3,
     key_titles[triggerbot_key],
     false,
     CONFG_LIGHTBLUE
   );
 
-  con_set_line_callback( 2, []( CON_LINE *,U8 action ) {
+  con_set_line_callback( 3, []( CON_LINE *,U8 action ) {
     if( action == LINE_ACTION_ENTER ) {
-      con_update_hotkey( 2, triggerbot_key.v );
+      con_update_hotkey( 3, triggerbot_key.v );
     }
     } );
 
-  con_set_line_text( 3, "trigger team", false );
+  con_set_line_text( 4, "trigger team", false );
   con_set_line_subtext(
-    3,
+    4,
     triggerteam_active? "[on]" : "[off]",
     false,
     triggerteam_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
   );
 
-  con_set_line_callback( 3, []( CON_LINE *self,U8 action ) {
+  con_set_line_callback( 4, []( CON_LINE *self,U8 action ) {
     triggerteam_active = !triggerteam_active;
     con_set_line_subtext(
-      3,
+      4,
       triggerteam_active? "[on]" : "[off]",
       self->active,
       triggerteam_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED

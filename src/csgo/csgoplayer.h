@@ -21,12 +21,14 @@ public:
 
   NETVAR( m_bSpottedByMask , "DT_BaseEntity", I32       );
 
+  NETVAR( m_aimPunchAngle  , "DT_BasePlayer", VEC3      );
   NETVAR( m_hActiveWeapon  , "DT_BasePlayer", U32       );
   NETVAR( m_iHealth        , "DT_BasePlayer", I32       );
   NETVAR( m_vecOrigin      , "DT_BasePlayer", VEC3      );
 
   NETVAR( m_clrRender      , "DT_CSPlayer"  , BYTECOLOR );
   NETVAR( m_flFlashMaxAlpha, "DT_CSPlayer"  , F32       );
+  NETVAR( m_iShotsFired    , "DT_CSPlayer"  , I32       );
   NETVAR( m_iTeamNum       , "DT_CSPlayer"  , I32       );
   NETVAR( m_lifeState      , "DT_CSPlayer"  , I32       );
 

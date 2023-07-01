@@ -3,6 +3,8 @@
 
 #include "typedef.h"
 
+#define M_PI 3.141592653589793238f
+
 struct VEC3 {
   F32 x, y, z;
 
@@ -102,6 +104,14 @@ struct VEC3 {
     z = 0.f;
 
     return *this;
+  }
+
+  F32 get_dynamic( F32 distance ) {
+    F32 sqr1 = sinf( x * M_PI / 180.f ) * distance;
+    F32 sqr2 = sinf( y * M_PI / 180.f ) * distance;
+    return sqrtf( 
+      ( sqr1 * sqr1 ) + ( sqr2 * sqr2 )
+    );
   }
 };
 

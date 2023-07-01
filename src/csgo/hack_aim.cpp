@@ -44,7 +44,7 @@ void hack_run_aim( CSGO* p ) {
     return;
   }
 
-  F32 lowest_dist{ 2.f };
+  F32 lowest_dist{ 4.2f };
   U32 closest{ };
   for( U32 index{}; index <= 64; ++index ) {
     CSGOPLAYER player = CSGOENTITY::from_list( index );
@@ -62,7 +62,10 @@ void hack_run_aim( CSGO* p ) {
       target_pos = player.get_bone_pos( 8 );
     VEC3 target_ang = vector_angles( local_pos, target_pos );
 
-    F32 distance = ( local_view - target_ang ).clamp().length2d();
+    //F32 distance = ( local_view - target_ang ).clamp().length2d(); // non-dynamic
+    F32 distance = ( local_view - target_ang ).get_dynamic(
+      local_pos.dist_to( target_pos )
+    );
 
     if( distance > lowest_dist )
       continue;
@@ -78,8 +81,8 @@ void hack_run_aim( CSGO* p ) {
     return;
   }
 
-  m_pitch = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f ),
-  m_yaw   = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 3.33f );
+  m_pitch = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 4.2f ),
+  m_yaw   = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 4.2f );
 
   convar_set( p, pitch_ptr, m_pitch );
   convar_set( p,   yaw_ptr, m_yaw   );

@@ -289,7 +289,7 @@ void hack_run_recoil( CSGO* p ) {
     return;
 
   static VEC3 last_punch;
-
+  // add pistol check
   if( local.m_iShotsFired( ) ) {
     VEC3 local_view = p->read<VEC3>( clientstate_ptr + 0x4d90 );
     VEC3  rcs_angle = {
@@ -306,11 +306,15 @@ void hack_run_recoil( CSGO* p ) {
       0.f
     };
   } else {
+    //last_punch = { 0.f, 0.f, 0.f };
+    // temp fix idk how else to make it better yet
     last_punch = {
-      0.f, 0.f, 0.f
+      local.m_aimPunchAngle( ).x * 2.f,
+      local.m_aimPunchAngle( ).y * 2.f,
+      0.f
     };
-    return;
   }
+  return;
 }
 
 inline void hack_print_offset( U8 line, const char* name, ULONG offset ) {

@@ -19,6 +19,8 @@ bool aim_check_player( CSGOPLAYER player, CSGO* p ) {
   return false;
 }
 
+#define aim_fov 8.f
+
 void hack_run_aim( CSGO* p ) {
   if( !aim_active )
     return;
@@ -44,7 +46,7 @@ void hack_run_aim( CSGO* p ) {
     return;
   }
 
-  F32 lowest_dist{ 4.2f };
+  F32 lowest_dist{ aim_fov };
   U32 closest{ };
   for( U32 index{}; index <= 64; ++index ) {
     CSGOPLAYER player = CSGOENTITY::from_list( index );
@@ -81,8 +83,8 @@ void hack_run_aim( CSGO* p ) {
     return;
   }
 
-  m_pitch = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 4.2f ),
-  m_yaw   = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / 4.2f );
+  m_pitch = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / aim_fov ),
+  m_yaw   = 0.001f + ( 0.022f - 0.001f ) * ( lowest_dist / aim_fov );
 
   convar_set( p, pitch_ptr, m_pitch );
   convar_set( p,   yaw_ptr, m_yaw   );

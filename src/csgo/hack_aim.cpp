@@ -10,8 +10,11 @@ bool aim_check_player( CSGOPLAYER player, CSGO* p ) {
     return true; // if no player
   if( player.get_clientclass().index != CCSPlayer )
     return true; // if not player
-  if( player.base == p->read<U32>( localplayer_ptr ) )
+  CSGOPLAYER local = p->read<U32>( localplayer_ptr );
+  if( player.base == local )
     return true; // if player is you
+  if( player.m_iTeamNum() == local.m_iTeamNum() )
+    return true;
   if( player.m_bDormant() )
     return true; // dormant
   if( player.m_lifeState() )
@@ -22,6 +25,12 @@ bool aim_check_player( CSGOPLAYER player, CSGO* p ) {
 }
 
 #define aim_fov 10.f
+#define aim_reset( ) { \
+  m_pitch = m_yaw = 0.022f; \
+  convar_set( p, pitch_ptr, m_pitch ); \
+  convar_set( p,   yaw_ptr, m_yaw   ); \
+  return; \
+}
 
 F32 calc_dist( VEC3 v, F32 distance ) {
   F32 sqr1 = sinf( v.x * M_PI / 180.f ) * distance;
@@ -34,30 +43,19 @@ F32 calc_dist( VEC3 v, F32 distance ) {
 void hack_run_aim( CSGO* p ) {
   if( !aim_active )
     return;
-
-  static U32 color_ptr = convar_find( p, "cl_crosshaircolor_r" );
-  convar_set<I32>( p, color_ptr, 255 );
   
   F32 m_pitch, m_yaw;
 
   CSGOPLAYER local = p->read<U32>( localplayer_ptr );
-  if( local.m_iHealth( ) < 1 || !local ) {
-    m_pitch = m_yaw = 0.022f;
-    convar_set( p, pitch_ptr, m_pitch );
-    convar_set( p,   yaw_ptr, m_yaw   );
-    return;
-  }
+  if( local.m_iHealth( ) < 1 || !local )
+    aim_reset();
 
   CSGOENTITY wep = CSGOENTITY::from_list(
     ( ( local.m_hActiveWeapon() & 0xFFF ) - 1 )
   );
 
-  if( !wep.is_weapon( ) ) {
-    m_pitch = m_yaw = 0.022f;
-    convar_set( p, pitch_ptr, m_pitch );
-    convar_set( p,   yaw_ptr, m_yaw   );
-    return;
-  }
+  if( !wep.is_weapon( ) )
+    aim_reset();
 
   F32 lowest_dist{ aim_fov };
   U32 closest{ };
@@ -90,12 +88,8 @@ void hack_run_aim( CSGO* p ) {
     closest = player;
   }
 
-  if( !closest ) {
-    m_pitch = m_yaw = 0.022f;
-    convar_set( p, pitch_ptr, m_pitch );
-    convar_set( p,   yaw_ptr, m_yaw   );
-    return;
-  }
+  if( !closest )
+    aim_reset();
 
   // change this to change strength. this is the minimum allowed by the game.
   const F32 min_sens = 0.0001f;
@@ -111,7 +105,6 @@ void hack_run_aim( CSGO* p ) {
   m_pitch = min_sens + ( 0.022f - min_sens ) * factor,
   m_yaw   = min_sens + ( 0.022f - min_sens ) * factor;
 
-  convar_set<I32>( p, color_ptr, 0 );
   convar_set( p, pitch_ptr, m_pitch );
   convar_set( p,   yaw_ptr, m_yaw   );
 }

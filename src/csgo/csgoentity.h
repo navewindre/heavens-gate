@@ -54,6 +54,10 @@ public:
   OFFSET( m_iCrosshairID, "m_bHasDefuser", "DT_CSPlayer"     , I32, 92 );
   OFFSET( m_dwBoneMatrix,  "m_nForceBone", "DT_BaseAnimating", U32, 28 );
 
+  bool m_bDormant() {
+    return get<bool>( 0xed );
+  }
+  
   static CSGOENTITY from_list( I32 idx ) {
     static U32 entlist = csgop->read<U32>(
       csgop->code_match(

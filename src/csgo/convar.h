@@ -41,12 +41,23 @@ inline U32 convar_find( CSGO* p, const char* name ) {
   return 0;
 }
 
+struct CVValue_t {
+  char* m_pszString;
+  int m_StringLength;
+  float m_fValue;
+  int m_nValue;
+};
+
 template <typename T>
 inline void convar_set( CSGO* p, U32 convar, T _new ) {
   U32 val = *(U32*)&_new;
   val ^= convar;
 
-  p->write<U32>( convar + 0x2c, val );
+  CVValue_t value = p->read<CVValue_t>( convar + 0x24 );
+  value.m_nValue = val;
+  *(U32*)(&value.m_fValue) = val;
+  
+  p->write<CVValue_t>( convar + 0x24, value );
 }
 
 template <typename T>

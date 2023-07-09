@@ -215,7 +215,7 @@ void show_page_1() {
     5,
     clantag_active? "[on]" : "[off]",
     false,
-    glow_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
+    clantag_active? CONFG_LIGHTGREEN : CONFG_LIGHTRED
   );
 
   con_set_line_callback( 5, []( CON_LINE* self, U8 action ) {

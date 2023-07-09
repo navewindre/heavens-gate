@@ -9,11 +9,11 @@ struct CMD_TOGGLE {
   SETTING<bool>& var;
 };
 
+
 void hack_toggle( CMD_TOGGLE cmd ) {
-  con_clear( );
-
-  menu_pages[ cmd.page ].page_fn( );
-
+  con_clear();
+  
+  menu_pages[cmd.page].page_fn();
   show_paging( cmd.page );
 
   cmd.var = !cmd.var;
@@ -85,9 +85,12 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
       gcon_var( "echo \"hg_triggerteam : toggles team triggerbot\""   ),
       gcon_var( "echo \"hg_xhair       : toggles recoil crosshair\""  )
     };
-    
-    for( const auto& cmd : help_cmd )
+
+    u_sleep( 1 * T_SEC / 5 );
+    for( const auto& cmd : help_cmd ) {
       SendMessageA( hconsole, WM_COPYDATA, 0, ( LPARAM )&cmd );
+      u_sleep( 1 * T_SEC / 20 );
+    }
     return;
   }
 

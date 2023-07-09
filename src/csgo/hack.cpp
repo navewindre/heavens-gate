@@ -38,7 +38,7 @@ U32 tonemap_ptr;
 U32 xhair_ptr;
 U32 yaw_ptr;
 
-void hack_run_bhop( CSGO* p ) { // add functionality to work off of ladders
+void hack_run_bhop( CSGO* p ) {
   if( !bhop_active || !( GetAsyncKeyState( VK_SPACE ) & 0x8000 ) ) 
     return;
 
@@ -78,7 +78,7 @@ void hack_run_trigger( CSGO* p ) {
 
 void hack_run_chams( CSGO* p ) {
   if( chams_active )
-    convar_set<float>( p, ambientmin_ptr, nightmode_active ? 850.f : 250.f );
+    convar_set<float>( p, ambientmin_ptr, nightmode_active ? 250.f : 50.f );
   else
     convar_set<float>( p, ambientmin_ptr, 0.f );
 }
@@ -153,7 +153,7 @@ void hack_run_nightmode( CSGO* p ) {
   if( nightmode_active != prev_active ) {
     F32 time = (F32)u_time();
     anim_end = time + anim_time;
-    
+
     prev_active = nightmode_active;
   }
 
@@ -162,8 +162,8 @@ void hack_run_nightmode( CSGO* p ) {
     F32 delta = ( anim_end - time ) / anim_time;
     if( delta > 1.0f )
       delta = 1.0f;
-    
-    convar_set<float>( p, tonemap_ptr, nightmode_active ? 0.1f + delta * 0.9f : 1.0f - delta * 0.9f );
+
+    convar_set<float>( p, tonemap_ptr, nightmode_active ? 0.2f + delta * 0.9f : 1.0f - delta * 0.9f );
   }
 }
 

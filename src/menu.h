@@ -79,6 +79,8 @@ struct MENU_PAGE {
 
 const I8 MENU_PAGE_MIN = 0;
 const I8 MENU_PAGE_MAX = 2;
+
+extern I8 menu_page;
 extern MENU_PAGE menu_pages[MENU_PAGE_MAX - MENU_PAGE_MIN + 1];
 
 extern void menu_show_ui( PROCESS32* p );

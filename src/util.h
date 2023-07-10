@@ -59,6 +59,22 @@ STR< 32 > u_num_to_string_dec( t num ) {
   return ret;
 }
 
+template < typename t >
+STR< 32 > u_num_to_string_float( t num ) {
+  STR< 32 > ret;
+
+  sprintf( ret.data, "%.1f", (F32)num );
+  return ret;
+}
+
+template < typename t >
+STR< 32 > u_num_to_string_int( t num ) {
+  STR< 32 > ret;
+
+  sprintf( ret.data, "%d", (I32)num );
+  return ret;
+}
+
 template < U32 size = 128 >
 STR< size > u_widebyte_to_ansi( const wchar_t* str ) {
   STR< size > ret;

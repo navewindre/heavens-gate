@@ -13,10 +13,14 @@ SETTING_HOLDER settings;
 SETTING<I32>  triggerbot_key{ &settings, "triggerbot_key", 0x6 };
 SETTING<bool> triggerteam_active{ &settings, "triggerteam_active", false };
 SETTING<bool> aim_active{ &settings, "aim_active", false };
+SETTING<F32>  aim_fov{ &settings, "aim_fov", 6.5f };
+SETTING<I32>  aim_strength{ &settings, "aim_strength", 100 };
+SETTING<bool> aimteam_active{ &settings, "aimteam_active", false };
 SETTING<bool> rcs_active{ &settings, "rcs_active", false };
 SETTING<bool> bhop_active{ &settings, "bhop_active", true };
 SETTING<bool> chams_active{ &settings, "chams_active", false };
 SETTING<bool> glow_active{ &settings, "glow_active", false };
+SETTING<bool> glowteam_active{ &settings, "glowteam_active", false };
 SETTING<bool> nightmode_active{ &settings, "nightmode_active", false };
 SETTING<bool> noflash_active{ &settings, "noflash_active", false };
 SETTING<bool> crosshair_active{ &settings, "crosshair_active", false };
@@ -115,7 +119,7 @@ void hack_run_glow( CSGO* p ) {
     /* clientclass outdated af*/
     if( cl.index == CCSPlayer ) {
       I32 team = e.m_iTeamNum();
-      if( team == local_team || (team != 2 && team != 3) )
+      if( ( team == local_team && !glowteam_active ) || (team != 2 && team != 3) )
         continue;
     
       color = ( team == 2 ) ?
@@ -271,7 +275,6 @@ void hack_run_clantag( CSGO* csgo ) {
   }
 }
 
-// fix tapfire over-compensation issue
 void hack_run_recoil( CSGO* p ) {
   if( !rcs_active )
     return;
@@ -290,7 +293,7 @@ void hack_run_recoil( CSGO* p ) {
     return;
 
   static VEC3 last_punch{ };
-  if( local.m_iShotsFired( ) ) {
+  if( local.m_iShotsFired( ) > 1 ) {
     VEC3 local_view = p->read<VEC3>( clientstate_ptr + 0x4d90 );
     VEC3  rcs_angle = {
       local_view.x + last_punch.x - local.m_aimPunchAngle( ).x * 2.f,
@@ -305,14 +308,8 @@ void hack_run_recoil( CSGO* p ) {
       local.m_aimPunchAngle( ).y * 2.f,
       0.f
     };
-  } else {
-    // this isnt right iirc
-    last_punch = {
-      local.m_aimPunchAngle( ).x * 2.f,
-      local.m_aimPunchAngle( ).y * 2.f,
-      0.f
-    };
-  }
+  } else
+    last_punch = { 0.f, 0.f, 0.f };
   return;
 }
 

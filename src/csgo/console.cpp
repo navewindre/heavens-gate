@@ -35,9 +35,9 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
   for( auto& it : args )
     sprintf( buf, "%s\n%s", buf, it.data );
 
-  // split char array @ spaces to ignore spaces
+  // split char array @ spaces to ignore extraneous spaces after cmd
   // & add fov, perf_tps, and aim strength ( int support )
-  CMD_TOGGLE cmd_toggle[] = {
+  static CMD_TOGGLE cmd_toggle[] = {
     { "hg_aim"        , "toggles aim assist"      , *settings.find<bool>(         "aim_active"fnv ) },
     { "hg_aimteam"    , "toggles team aim assist" , *settings.find<bool>(     "aimteam_active"fnv ) },
     { "hg_bhop"       , "toggles bhop"            , *settings.find<bool>(        "bhop_active"fnv ) },

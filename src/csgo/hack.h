@@ -94,25 +94,14 @@ static bool hack_run( PROCESS32* p ) {
   hack_calc_perf_metrics( perf_tickrate );
 
   CSGO* csgo = (CSGO*)p;
-
-  hack_run_aim( csgo );
-  hack_run_bhop( csgo );
-  hack_run_trigger( csgo );
-  hack_run_recoil( csgo );
-  hack_run_chams( csgo );
-  hack_run_glow( csgo );
-  hack_run_nightmode( csgo );
-  hack_run_noflash( csgo );
-  hack_run_crosshair( csgo );
-  hack_run_clantag( csgo );
-
   
+
   static U32 string_ptr = 0;
   if( !string_ptr ) {
     string_ptr = p->code_match( csgo->engine, "B9 ? ? ? ? E8 ? ? ? ? 84 C0 75 0E 68 ? ? ? ? FF 15 ? ? ? ? 83 C4 04 83 05 ? ? ? ? ? 75 04" );
     string_ptr = p->read<U32>( string_ptr + 1 );
   }
-    
+
   STR<64> buf;
   p->read( string_ptr, buf, sizeof( buf ) );
 
@@ -125,6 +114,17 @@ static bool hack_run( PROCESS32* p ) {
     }
   }
 
+
+  hack_run_aim( csgo );
+  hack_run_bhop( csgo );
+  hack_run_trigger( csgo );
+  hack_run_recoil( csgo );
+  hack_run_chams( csgo );
+  hack_run_glow( csgo );
+  hack_run_nightmode( csgo );
+  hack_run_noflash( csgo );
+  hack_run_crosshair( csgo );
+  hack_run_clantag( csgo );
   
   CSGOPLAYER local = p->read<U32>( localplayer_ptr );
   con_set_bottomline_text(

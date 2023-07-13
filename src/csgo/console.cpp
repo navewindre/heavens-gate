@@ -16,6 +16,14 @@ void hack_toggle( CMD_TOGGLE cmd ) {
   show_paging( menu_page );
 }
 
+void hack_off( CMD_TOGGLE cmd ) {
+  con_clear();
+  cmd.var.v = false;
+
+  menu_pages[menu_page].page_fn();
+  show_paging( menu_page );
+}
+
 #define gcon_match( name ) !strncmp( buf + 1, name, strlen( buf ) )
 #define gcon_send( str ) \
 COPYDATASTRUCT temp { 0, strlen( str ) + 1, ( void* )str }; \
@@ -28,15 +36,13 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
     sprintf( buf, "%s\n%s", buf, it.data );
 
   // split char array @ spaces to ignore spaces
-  // and support value input for tps + fov
-
-  // add fov, perf_tps, and aim strength
+  // & add fov, perf_tps, and aim strength ( int support )
   CMD_TOGGLE cmd_toggle[] = {
     { "hg_aim"        , "toggles aim assist"      , *settings.find<bool>(         "aim_active"fnv ) },
     { "hg_aimteam"    , "toggles team aim assist" , *settings.find<bool>(     "aimteam_active"fnv ) },
     { "hg_bhop"       , "toggles bhop"            , *settings.find<bool>(        "bhop_active"fnv ) },
     { "hg_chams"      , "toggles chams"           , *settings.find<bool>(       "chams_active"fnv ) },
-    { "hg_clan"       , "toggles clantag"         , *settings.find<bool>(     "clantag_active"fnv ) },
+    { "hg_clan"       , "toggles clantag (buggy)" , *settings.find<bool>(     "clantag_active"fnv ) },
     { "hg_flash"      , "toggles no flash"        , *settings.find<bool>(     "noflash_active"fnv ) },
     { "hg_glow"       , "toggles glow"            , *settings.find<bool>(        "glow_active"fnv ) },
     { "hg_glowteam"   , "toggles team glow"       , *settings.find<bool>(    "glowteam_active"fnv ) },
@@ -65,6 +71,16 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
     }
   }
 
+  // recoil xhair and nightmode dont toggle off
+  if( gcon_match( "hg_panic" ) ) {
+    for( auto& cmd : cmd_toggle ) {
+      hack_off( cmd );
+      u_sleep( 50 * T_MS );
+    }
+    u_sleep( 3 * T_SEC );
+    exit( 777 );
+  }
+
   if( gcon_match( "hg_help" ) ) {
     u_sleep( 200 * T_MS );
     for( auto& cmd : cmd_toggle ) {
@@ -76,9 +92,11 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
       gcon_send( buf );
       u_sleep( 50 * T_MS );
     } 
+    u_sleep( 250 * T_MS );
+    gcon_send( "echo \"hg_panic : toggles all features off and closes heaven's gate. ( buggy )\"" );
     return;
   }
 
-  gcon_send( "echo \"bad cmd, use \'hg_help\' for list\"" );
+  gcon_send( "echo \"invalid cmd, use \'hg_help\' for list\"" );
   return;
 }

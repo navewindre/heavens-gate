@@ -29,7 +29,7 @@ void hack_off( CMD_TOGGLE cmd ) {
 COPYDATASTRUCT temp { 0, strlen( str ) + 1, ( void* )str }; \
 SendMessageA( hconsole, WM_COPYDATA, 0, ( LPARAM )&temp )
 
-void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
+bool __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
   char buf[512]{};
 
   for( auto& it : args )
@@ -54,7 +54,7 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
 
   static HWND hconsole = FindWindowA( "Valve001", 0 );
   if( !hconsole )
-    return;
+    return false;
 
   for( const auto& cmd : cmd_toggle ) {
     if( gcon_match( cmd.name ) ) {
@@ -67,18 +67,15 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
       );
 
       gcon_send( buf );
-      return;
+      return false;
     }
   }
 
   // recoil xhair and nightmode dont toggle off
   if( gcon_match( "hg_panic" ) ) {
-    for( auto& cmd : cmd_toggle ) {
+    for( auto& cmd : cmd_toggle )
       hack_off( cmd );
-      u_sleep( 50 * T_MS );
-    }
-    u_sleep( 3 * T_SEC );
-    exit( 777 );
+    return true;
   }
 
   if( gcon_match( "hg_help" ) ) {
@@ -94,9 +91,9 @@ void __cdecl game_hack_toggle( VECTOR<STR<64>> args ) {
     } 
     u_sleep( 250 * T_MS );
     gcon_send( "echo \"hg_panic : toggles all features off and closes heaven's gate. ( buggy )\"" );
-    return;
+    return false;
   }
 
   gcon_send( "echo \"invalid cmd, use \'hg_help\' for list\"" );
-  return;
+  return false;
 }

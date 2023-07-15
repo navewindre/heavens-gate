@@ -40,3 +40,8 @@ void u_sleep( U64 ns ) {
   interval.QuadPart = -1 * ns;
   nt_delay_execution64( false, &interval );
 }
+
+void u_exit( ) {
+  u_sleep( 1.2f * T_SEC );
+  exit( 777 );
+}

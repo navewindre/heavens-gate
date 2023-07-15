@@ -18,6 +18,7 @@ constexpr U64 T_DAY = 24 * T_HOUR;
 extern ULONG u_thread_create( LPTHREAD_START_ROUTINE routine, void* param = 0 );
 extern ULONG u_thread_create( HANDLE proc, LPTHREAD_START_ROUTINE routine, void* param = 0 );
 extern void  u_sleep( U64 ns );
+extern void  u_exit( );
 
 template < U32 size >
 struct STR {

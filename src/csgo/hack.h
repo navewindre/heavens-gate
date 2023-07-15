@@ -13,12 +13,12 @@
 #include "csgoplayer.h"
 
 struct CMD_FUNC {
-  using func_t = void( __cdecl* )( VECTOR<STR<64>> );
+  using func_t = bool( __cdecl* )( VECTOR<STR<64>> );
   func_t func;
   STR<64> name;
 };
 
-void __cdecl game_hack_toggle( VECTOR<STR<64>> args );
+bool __cdecl game_hack_toggle( VECTOR<STR<64>> args );
 static CMD_FUNC g_hack_toggle = {
   &game_hack_toggle,
   "hg_"
@@ -95,7 +95,7 @@ static bool hack_run( PROCESS32* p ) {
 
   CSGO* csgo = (CSGO*)p;
   
-
+  bool panic = false;
   static U32 string_ptr = 0;
   if( !string_ptr ) {
     string_ptr = p->code_match( csgo->engine, "B9 ? ? ? ? E8 ? ? ? ? 84 C0 75 0E 68 ? ? ? ? FF 15 ? ? ? ? 83 C4 04 83 05 ? ? ? ? ? 75 04" );
@@ -109,7 +109,7 @@ static bool hack_run( PROCESS32* p ) {
     CMD_FUNC* fn = cmd_funcs[i];
 
     if( strncmp( fn->name.data, buf.data, strlen( fn->name.data ) ) == 0 ) {
-      fn->func( { buf } );
+      panic = fn->func( { buf } );
       p->write<U8>( string_ptr, 0 );
     }
   }
@@ -126,6 +126,12 @@ static bool hack_run( PROCESS32* p ) {
   hack_run_crosshair( csgo );
   hack_run_clantag( csgo );
   
+  if( panic ) {
+    u_thread_create(
+      (LPTHREAD_START_ROUTINE)u_exit
+    );
+  }
+
   CSGOPLAYER local = p->read<U32>( localplayer_ptr );
   con_set_bottomline_text(
     "local: 0x%08x | flags: 0x%03x | tps: %.0f",

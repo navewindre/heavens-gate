@@ -152,7 +152,7 @@ void hack_run_nightmode( CSGO* p ) {
   static bool prev_active = false;
 
   static F32 anim_end = 0.f;
-  const F32 anim_time = 1.2f;
+  const F32 anim_time = 1.f;
 
   if( nightmode_active != prev_active ) {
     F32 time = (F32)u_time();
